@@ -5,11 +5,11 @@ import { Pressable, Text, View } from "react-native";
 export default function Header() {
     return (
         <View className="flex-row items-center justify-between px-6 pt-4">
-            <Text 
+            <Text
                 className="text-3xl font-extrabold"
                 style={{ color: COLORS.primary }}
             >
-                FinEd
+                FinEd App
             </Text>
 
             <View className="flex-row items-center gap-3">
@@ -27,11 +27,11 @@ export default function Header() {
                     />
                 </Pressable>
 
-                <Pressable 
+                <Pressable
                     className="h-12 w-12 items-center justify-center rounded-full"
                     style={{ backgroundColor: COLORS.accent }}
                 >
-                    <Text 
+                    <Text
                         className="font-bold"
                         style={{ color: COLORS.text }}
                     >
@@ -41,4 +41,4 @@ export default function Header() {
             </View>
         </View>
     );
-}
+}
