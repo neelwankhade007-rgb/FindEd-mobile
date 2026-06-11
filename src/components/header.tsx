@@ -9,7 +9,7 @@ export default function Header() {
                 className="text-3xl font-extrabold"
                 style={{ color: COLORS.primary }}
             >
-                FinEd App
+                FinEd
             </Text>
 
             <View className="flex-row items-center gap-3">
