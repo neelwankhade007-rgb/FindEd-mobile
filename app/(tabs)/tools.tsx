@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import ToolsScreen from "@/features/tools/ToolsScreen";
 
-export default function Screen() {
-  return (
-    <View className="flex-1 items-center justify-center">
-      <Text>Tools</Text>
-    </View>
-  );
+export default function Page() {
+  return <ToolsScreen />;
 }

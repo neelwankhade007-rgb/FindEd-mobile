@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import ArticlesScreen from "@/features/articles/ArticlesScreen";
 
-export default function Screen() {
-  return (
-    <View className="flex-1 items-center justify-center">
-      <Text>Articles</Text>
-    </View>
-  );
+export default function Page() {
+  return <ArticlesScreen />;
 }
