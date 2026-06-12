@@ -2,6 +2,49 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## Folder Structure
+
+```text
+FinEd/
+├── app/                      # Expo Router routes only
+│   ├── _layout.tsx
+│   └── (tabs)/
+│       ├── _layout.tsx
+│       ├── index.tsx
+│       ├── courses.tsx
+│       ├── articles.tsx
+│       ├── tools.tsx
+│       └── profile.tsx
+│
+├── src/
+│   ├── constants/
+│   │   └── colors.ts
+│   └── features/
+│       ├── home/
+│       │   ├── HomeScreen.tsx
+│       │   └── components/
+│       │       ├── Header.tsx
+│       │       ├── ProfileCard.tsx
+│       │       ├── FeaturedCard.tsx
+│       │       └── ContinueLearningCard.tsx
+│       ├── courses/
+│       │   └── CoursesScreen.tsx
+│       ├── articles/
+│       │   └── ArticlesScreen.tsx
+│       ├── tools/
+│       │   └── ToolsScreen.tsx
+│       └── profile/
+│           └── ProfileScreen.tsx
+│
+├── assets/
+│   ├── images/
+│   ├── icons/
+│   ├── fonts/
+│   └── website/
+│
+└── app.json
+```
+
 ## Get started
 
 1. Install dependencies
