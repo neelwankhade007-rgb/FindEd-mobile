@@ -1,6 +1,10 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet, LayoutAnimation } from "react-native";
-import { ChevronDown, ChevronUp } from "lucide-react-native";
+import React from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+} from "react-native";
 import { COLORS } from "@/constants/colors";
 
 export interface TOCSection {
@@ -19,112 +23,105 @@ export default function TableOfContents({
   activeSectionId,
   onSectionPress,
 }: TableOfContentsProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
-
-  const toggleExpand = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded(!isExpanded);
-  };
-
   return (
-    <View style={[styles.card, { borderColor: COLORS.border, backgroundColor: COLORS.surface }]}>
-      {/* Header */}
-      <Pressable onPress={toggleExpand} style={styles.header}>
-        <Text style={[styles.headerText, { color: COLORS.text }]}>Table of Contents</Text>
-        {isExpanded ? (
-          <ChevronUp size={20} color={COLORS.textSecondary} />
-        ) : (
-          <ChevronDown size={20} color={COLORS.textSecondary} />
-        )}
-      </Pressable>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: COLORS.surface,
+        },
+      ]}
+    >
+      <Text
+        style={[
+          styles.headerText,
+          {
+            color: COLORS.text,
+          },
+        ]}
+      >
+        Table of Contents
+      </Text>
 
-      {/* Sections List */}
-      {isExpanded && (
-        <View style={[styles.listContainer, { borderTopColor: COLORS.border }]}>
-          {sections.map((section) => {
-            const isActive = section.id === activeSectionId;
-            return (
-              <Pressable
-                key={section.id}
-                onPress={() => onSectionPress(section.id)}
-                style={({ pressed }) => [
-                  styles.item,
-                  isActive && { backgroundColor: `${COLORS.primary}10` }, // 10% opacity primary
-                  pressed && { opacity: 0.7 },
+      <View style={styles.listContainer}>
+        {sections.map((section) => {
+          const isActive =
+            section.id === activeSectionId;
+
+          return (
+            <Pressable
+              key={section.id}
+              onPress={() =>
+                onSectionPress(section.id)
+              }
+              style={[
+                styles.item,
+                isActive && {
+                  backgroundColor:
+                    `${COLORS.primary}10`,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.itemText,
+                  {
+                    color: isActive
+                      ? COLORS.primary
+                      : COLORS.textSecondary,
+                  },
+                  isActive &&
+                  styles.activeItemText,
                 ]}
               >
-                {/* Active Indicator Bar */}
-                {isActive && (
-                  <View style={[styles.activeIndicator, { backgroundColor: COLORS.primary }]} />
-                )}
-                
-                <Text
-                  style={[
-                    styles.itemText,
-                    { color: isActive ? COLORS.primary : COLORS.textSecondary },
-                    isActive && styles.activeItemText,
-                  ]}
-                >
-                  {section.title}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
+                {section.title}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 1,
-    borderRadius: 12,
-    marginVertical: 16,
-    overflow: "hidden",
+    borderRadius: 24,
+    padding: 18,
+    marginVertical: 20,
+
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+
+    elevation: 4,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
+
   headerText: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 12,
   },
+
   listContainer: {
-    borderTopWidth: 1,
-    paddingVertical: 8,
+    gap: 4,
   },
+
   item: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    position: "relative",
+    paddingHorizontal: 12,
+    borderRadius: 12,
   },
-  activeIndicator: {
-    position: "absolute",
-    left: 0,
-    top: 10,
-    bottom: 10,
-    width: 4,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
-  },
+
   itemText: {
-    fontSize: 14,
-    fontWeight: "400",
-    paddingLeft: 6,
+    fontSize: 15,
   },
+
   activeItemText: {
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });

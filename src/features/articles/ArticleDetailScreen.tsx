@@ -17,26 +17,51 @@ import { MOCK_ARTICLES } from "./articleData";
 export default function ArticleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  // Fallback to first article if not found
-  const article = MOCK_ARTICLES.find((a) => a.id === id) || MOCK_ARTICLES[0];
+  const article =
+    MOCK_ARTICLES.find((a) => a.id === id) ||
+    MOCK_ARTICLES[0];
 
   const renderBody = (text: string) => {
     return text.split("\n\n").map((paragraph, index) => {
       const trimmed = paragraph.trim();
+
       if (trimmed.startsWith("### ")) {
         return (
-          <Text key={index} className="text-lg font-extrabold mt-5 mb-2" style={{ color: COLORS.text }}>
+          <Text
+            key={index}
+            style={{
+              color: COLORS.text,
+              fontSize: 26,
+              lineHeight: 34,
+              fontWeight: "800",
+              marginTop: 36,
+              marginBottom: 16,
+            }}
+          >
             {trimmed.replace("### ", "")}
           </Text>
         );
       }
-      
-      // Check for bullet lists
+
       if (trimmed.startsWith("- ")) {
         return (
-          <View key={index} className="pl-4 mb-3">
+          <View
+            key={index}
+            style={{
+              paddingLeft: 8,
+              marginBottom: 16,
+            }}
+          >
             {trimmed.split("\n").map((item, itemIdx) => (
-              <Text key={itemIdx} className="text-sm leading-6 mb-1" style={{ color: COLORS.textSecondary }}>
+              <Text
+                key={itemIdx}
+                style={{
+                  color: COLORS.textSecondary,
+                  fontSize: 17,
+                  lineHeight: 30,
+                  marginBottom: 6,
+                }}
+              >
                 • {item.replace("- ", "")}
               </Text>
             ))}
@@ -44,12 +69,25 @@ export default function ArticleDetailScreen() {
         );
       }
 
-      // Check for numbered lists
       if (/^\d+\.\s/.test(trimmed)) {
         return (
-          <View key={index} className="pl-4 mb-3">
+          <View
+            key={index}
+            style={{
+              marginBottom: 18,
+            }}
+          >
             {trimmed.split("\n").map((item, itemIdx) => (
-              <Text key={itemIdx} className="text-sm leading-6 mb-1" style={{ color: COLORS.textSecondary }}>
+              <Text
+                key={itemIdx}
+                style={{
+                  color: COLORS.text,
+                  fontSize: 17,
+                  lineHeight: 30,
+                  fontWeight: "600",
+                  marginBottom: 6,
+                }}
+              >
                 {item}
               </Text>
             ))}
@@ -58,7 +96,15 @@ export default function ArticleDetailScreen() {
       }
 
       return (
-        <Text key={index} className="text-sm leading-6 mb-4" style={{ color: COLORS.textSecondary }}>
+        <Text
+          key={index}
+          style={{
+            color: COLORS.textSecondary,
+            fontSize: 17,
+            lineHeight: 30,
+            marginBottom: 20,
+          }}
+        >
           {trimmed}
         </Text>
       );
@@ -67,79 +113,181 @@ export default function ArticleDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Navigation Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 border-b" style={{ borderColor: COLORS.border, backgroundColor: COLORS.surface }}>
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 16,
+          paddingVertical: 16,
+          backgroundColor: COLORS.surface,
+
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          elevation: 2,
+        }}
+      >
         <Pressable
           onPress={() => router.back()}
-          className="flex-row items-center gap-1.5 p-1"
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
         >
-          <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
-          <Text className="text-base font-semibold" style={{ color: COLORS.primary }}>
+          <Ionicons
+            name="arrow-back"
+            size={22}
+            color={COLORS.primary}
+          />
+
+          <Text
+            style={{
+              color: COLORS.primary,
+              fontSize: 16,
+              fontWeight: "600",
+              marginLeft: 4,
+            }}
+          >
             Back
           </Text>
         </Pressable>
-        <Text className="text-sm font-bold uppercase tracking-wider" style={{ color: COLORS.textSecondary }}>
+
+        <Text
+          style={{
+            color: COLORS.textSecondary,
+            fontSize: 14,
+            fontWeight: "700",
+            textTransform: "uppercase",
+          }}
+        >
           {article.category}
         </Text>
-        <View style={{ width: 60 }} /> {/* Spacer to balance header */}
+
+        <View style={{ width: 60 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Hero Image */}
-        <View className="border-b" style={{ borderColor: COLORS.border }}>
-          <Image
-            source={require("../../../assets/images/featured.png")}
-            className="w-full h-56"
-            resizeMode="cover"
-          />
-        </View>
+        <Image
+          source={require("../../../assets/images/featured.png")}
+          style={{
+            width: "100%",
+            height: 220,
+          }}
+          resizeMode="cover"
+        />
 
-        {/* Content Container */}
-        <View className="p-6">
-          {/* Category & Date Row */}
-          <View className="flex-row items-center gap-2 mb-2">
-            <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: COLORS.primary }}>
+        {/* Content */}
+        <View
+          style={{
+            paddingHorizontal: 24,
+            paddingVertical: 24,
+          }}
+        >
+          {/* Category & Date */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <Text
+              style={{
+                color: COLORS.primary,
+                fontSize: 13,
+                fontWeight: "700",
+                textTransform: "uppercase",
+              }}
+            >
               {article.category}
             </Text>
-            <Text className="text-xs" style={{ color: COLORS.textSecondary }}>•</Text>
-            <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
+
+            <Text
+              style={{
+                marginHorizontal: 8,
+                color: "#9CA3AF",
+              }}
+            >
+              •
+            </Text>
+
+            <Text
+              style={{
+                color: COLORS.textSecondary,
+                fontSize: 13,
+              }}
+            >
               {article.date}
             </Text>
           </View>
 
           {/* Title */}
-          <Text className="text-2xl font-extrabold leading-8 mb-4" style={{ color: COLORS.text }}>
+          <Text
+            style={{
+              color: COLORS.text,
+              fontSize: 30,
+              lineHeight: 38,
+              fontWeight: "800",
+              marginBottom: 18,
+            }}
+          >
             {article.title}
           </Text>
 
-          {/* Metadata Chips Row */}
-          <View className="flex-row flex-wrap gap-2 mb-6">
-            <View className="px-3 py-1 rounded-md border" style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border }}>
-              <Text className="text-xs font-semibold" style={{ color: COLORS.textSecondary }}>
+          {/* Metadata Chips */}
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 10,
+              marginBottom: 28,
+            }}
+          >
+            <View style={styles.chip}>
+              <Text style={styles.chipText}>
                 📈 {article.level}
               </Text>
             </View>
-            <View className="px-3 py-1 rounded-md border" style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border }}>
-              <Text className="text-xs font-semibold" style={{ color: COLORS.textSecondary }}>
+
+            <View style={styles.chip}>
+              <Text style={styles.chipText}>
                 ⏱️ {article.readTime}
               </Text>
             </View>
-            <View className="px-3 py-1 rounded-md border" style={{ backgroundColor: COLORS.surface, borderColor: COLORS.border }}>
-              <Text className="text-xs font-semibold" style={{ color: COLORS.textSecondary }}>
+
+            <View style={styles.chip}>
+              <Text style={styles.chipText}>
                 🏷️ {article.category}
               </Text>
             </View>
           </View>
 
           {/* Summary */}
-          <View className="p-4 rounded-2xl border-l-4 mb-6" style={{ backgroundColor: COLORS.surface, borderLeftColor: COLORS.primary, borderColor: COLORS.border, borderWidth: 1 }}>
-            <Text className="text-sm font-semibold italic leading-5" style={{ color: COLORS.text }}>
+          <View style={styles.summaryCard}>
+            <Text
+              style={{
+                color: COLORS.text,
+                fontSize: 17,
+                lineHeight: 28,
+                fontWeight: "700",
+              }}
+            >
               {article.summary}
             </Text>
           </View>
 
-          {/* Article Body */}
-          <View className="mt-2">
+          {/* Body */}
+          <View>
             {renderBody(article.body)}
           </View>
         </View>
@@ -153,7 +301,61 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 60,
+  },
+
+  chip: {
+    backgroundColor: "#FFFFFF",
+
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+
+    borderRadius: 14,
+
+    shadowColor: "#000",
+
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    shadowOpacity: 0.08,
+
+    shadowRadius: 8,
+
+    elevation: 4,
+  },
+
+  chipText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+
+  summaryCard: {
+    backgroundColor: "#FFFFFF",
+
+    borderLeftWidth: 4,
+
+    padding: 20,
+
+    borderRadius: 22,
+
+    marginBottom: 36,
+
+    shadowColor: "#000",
+
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+
+    shadowOpacity: 0.1,
+
+    shadowRadius: 16,
+
+    elevation: 8,
   },
 });

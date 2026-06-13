@@ -8,58 +8,104 @@ interface ArticleListItemProps {
   onPress: () => void;
 }
 
-export default function ArticleListItem({ article, onPress }: ArticleListItemProps) {
+export default function ArticleListItem({
+  article,
+  onPress,
+}: ArticleListItemProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="p-3.5 rounded-[20px] border shadow-sm flex-row gap-3.5 mb-3"
       style={({ pressed }) => [
         {
-          backgroundColor: COLORS.surface,
-          borderColor: COLORS.border,
-          opacity: pressed ? 0.95 : 1,
+          backgroundColor: "#FFFFFF",
+
+          marginBottom: 16,
+
+          borderRadius: 24,
+
+          opacity: pressed ? 0.96 : 1,
+
+          shadowColor: "#000",
+
+          shadowOffset: {
+            width: 0,
+            height: 10,
+          },
+
+          shadowOpacity: 0.14,
+
+          shadowRadius: 20,
+
+          elevation: 10,
         },
       ]}
     >
-      {/* Thumbnail Left */}
-      <View className="rounded-xl overflow-hidden border" style={{ borderColor: COLORS.border }}>
+      <View className="flex-row p-4">
         <Image
           source={require("../../../../assets/images/course_1.png")}
-          className="w-20 h-20"
+          style={{
+            width: 110,
+            height: 110,
+            borderRadius: 18,
+          }}
           resizeMode="cover"
         />
-      </View>
 
-      {/* Content Right */}
-      <View className="flex-1 justify-center">
-        {/* Category & Date Row */}
-        <View className="flex-row items-center gap-1.5 mb-1">
-          <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: COLORS.primary }}>
-            {article.category}
+        <View className="flex-1 ml-4 justify-center">
+          <View className="flex-row items-center mb-2">
+            <Text
+              style={{
+                color: COLORS.primary,
+                fontSize: 12,
+                fontWeight: "700",
+              }}
+            >
+              {article.category}
+            </Text>
+
+            <Text
+              style={{
+                marginHorizontal: 8,
+                color: "#9CA3AF",
+              }}
+            >
+              •
+            </Text>
+
+            <Text
+              style={{
+                color: "#9CA3AF",
+                fontSize: 12,
+              }}
+            >
+              {article.date}
+            </Text>
+          </View>
+
+          <Text
+            numberOfLines={2}
+            style={{
+              color: COLORS.text,
+              fontSize: 20,
+              fontWeight: "800",
+              lineHeight: 26,
+              marginBottom: 6,
+            }}
+          >
+            {article.title}
           </Text>
-          <Text className="text-xs" style={{ color: COLORS.textSecondary }}>•</Text>
-          <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
-            {article.date}
+
+          <Text
+            numberOfLines={2}
+            style={{
+              color: COLORS.textSecondary,
+              fontSize: 14,
+              lineHeight: 20,
+            }}
+          >
+            {article.excerpt}
           </Text>
         </View>
-
-        {/* Title */}
-        <Text 
-          className="font-extrabold text-sm leading-4 mb-1" 
-          style={{ color: COLORS.text }}
-          numberOfLines={2}
-        >
-          {article.title}
-        </Text>
-
-        {/* Excerpt */}
-        <Text 
-          className="text-xs leading-4" 
-          style={{ color: COLORS.textSecondary }}
-          numberOfLines={1}
-        >
-          {article.excerpt}
-        </Text>
       </View>
     </Pressable>
   );

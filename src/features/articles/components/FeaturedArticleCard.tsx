@@ -8,60 +8,105 @@ interface FeaturedArticleCardProps {
   onPress: () => void;
 }
 
-export default function FeaturedArticleCard({ article, onPress }: FeaturedArticleCardProps) {
+export default function FeaturedArticleCard({
+  article,
+  onPress,
+}: FeaturedArticleCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="p-4 rounded-[28px] border shadow-sm mb-6"
       style={({ pressed }) => [
         {
-          backgroundColor: COLORS.surface,
-          borderColor: COLORS.border,
-          opacity: pressed ? 0.95 : 1,
-          transform: [{ scale: pressed ? 0.99 : 1 }],
+          backgroundColor: "#FFFFFF",
+
+          borderRadius: 28,
+
+          marginBottom: 24,
+
+          opacity: pressed ? 0.96 : 1,
+
+          shadowColor: "#000",
+
+          shadowOffset: {
+            width: 0,
+            height: 12,
+          },
+
+          shadowOpacity: 0.16,
+
+          shadowRadius: 24,
+
+          elevation: 12,
         },
       ]}
     >
-      {/* Featured Image with Badge overlay */}
-      <View className="rounded-2xl overflow-hidden mb-3 border relative" style={{ borderColor: COLORS.border }}>
-        <Image
-          source={require("../../../../assets/images/featured.png")}
-          className="w-full h-48"
-          resizeMode="cover"
-        />
-        {/* Category Badge overlay */}
-        <View 
-          className="absolute top-3 left-3 px-3 py-1 rounded-full shadow-sm"
-          style={{ backgroundColor: COLORS.primary }}
-        >
-          <Text className="text-white text-xs font-bold uppercase tracking-wider">
-            {article.category}
+      <Image
+        source={require("../../../../assets/images/featured.png")}
+        style={{
+          width: "100%",
+          height: 220,
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+        }}
+        resizeMode="cover"
+      />
+
+      <View className="p-5">
+        <View className="flex-row items-center mb-3">
+          <View
+            style={{
+              backgroundColor: COLORS.primary,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 999,
+            }}
+          >
+            <Text
+              style={{
+                color: "#FFFFFF",
+                fontSize: 11,
+                fontWeight: "700",
+              }}
+            >
+              {article.category}
+            </Text>
+          </View>
+
+          <Text
+            style={{
+              marginLeft: 10,
+              color: "#9CA3AF",
+              fontSize: 12,
+            }}
+          >
+            {article.date}
           </Text>
         </View>
+
+        <Text
+          numberOfLines={2}
+          style={{
+            color: COLORS.text,
+            fontSize: 26,
+            fontWeight: "800",
+            lineHeight: 34,
+            marginBottom: 10,
+          }}
+        >
+          {article.title}
+        </Text>
+
+        <Text
+          numberOfLines={3}
+          style={{
+            color: COLORS.textSecondary,
+            fontSize: 15,
+            lineHeight: 22,
+          }}
+        >
+          {article.excerpt}
+        </Text>
       </View>
-
-      {/* Date */}
-      <Text className="text-xs font-semibold mb-1" style={{ color: COLORS.textSecondary }}>
-        {article.date}
-      </Text>
-
-      {/* Title */}
-      <Text 
-        className="font-extrabold text-xl leading-6 mb-2" 
-        style={{ color: COLORS.text }}
-        numberOfLines={2}
-      >
-        {article.title}
-      </Text>
-
-      {/* Excerpt */}
-      <Text 
-        className="text-sm leading-5" 
-        style={{ color: COLORS.textSecondary }}
-        numberOfLines={2}
-      >
-        {article.excerpt}
-      </Text>
     </Pressable>
   );
 }

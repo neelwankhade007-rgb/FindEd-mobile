@@ -22,22 +22,24 @@ export default function CategoryChips({
     >
       {categories.map((category) => {
         const isActive = category === selectedCategory;
+
         return (
           <Pressable
             key={category}
             onPress={() => onSelectCategory(category)}
-            className="px-4 py-2.5 rounded-full border"
-            style={[
-              {
-                backgroundColor: isActive ? COLORS.primary : COLORS.surface,
-                borderColor: isActive ? COLORS.primary : COLORS.border,
-              },
-            ]}
+            className="px-4 py-2.5 rounded-full"
+            style={{
+              backgroundColor: isActive
+                ? COLORS.primary
+                : "#F4F4F5",
+            }}
           >
             <Text
               className="text-sm font-semibold"
               style={{
-                color: isActive ? "#ffffff" : COLORS.textSecondary,
+                color: isActive
+                  ? "#FFFFFF"
+                  : COLORS.textSecondary,
               }}
             >
               {category}
@@ -52,6 +54,6 @@ export default function CategoryChips({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    gap: 8,
+    gap: 10,
   },
 });
