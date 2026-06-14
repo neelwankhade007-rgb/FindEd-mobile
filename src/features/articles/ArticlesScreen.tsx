@@ -29,13 +29,10 @@ export default function ArticlesScreen() {
     }, 1500);
   }, []);
 
-  // Separate the featured article
   const featuredArticle = MOCK_ARTICLES.find((article) => article.isFeatured);
 
-  // Filter latest articles: exclude featured, then filter by category if needed
+  // Filter latest articles: filter by category if needed
   const latestArticles = MOCK_ARTICLES.filter(
-    (article) => article.id !== featuredArticle?.id
-  ).filter(
     (article) => selectedCategory === "All" || article.category === selectedCategory
   );
 
@@ -62,8 +59,8 @@ export default function ArticlesScreen() {
           />
         }
       >
-        {/* Featured Article - Only show when "All" category is selected or when it matches the category */}
-        {featuredArticle && (selectedCategory === "All" || featuredArticle.category === selectedCategory) && (
+        {/* Featured Article - Only show when "All" category is selected */}
+        {featuredArticle && selectedCategory === "All" && (
           <View className="px-5">
             <Text className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: COLORS.textSecondary }}>
               Featured Article

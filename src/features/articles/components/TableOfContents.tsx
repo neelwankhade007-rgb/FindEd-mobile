@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   Pressable,
   StyleSheet,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
+
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export interface TOCSection {
   id: string;
@@ -23,102 +34,129 @@ export default function TableOfContents({
   activeSectionId,
   onSectionPress,
 }: TableOfContentsProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleExpand = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: COLORS.surface,
-        },
-      ]}
-    >
-      <Text
-        style={[
-          styles.headerText,
-          {
-            color: COLORS.text,
-          },
-        ]}
+    <View style={styles.card}>
+      <Pressable
+        onPress={toggleExpand}
+        style={styles.headerRow}
       >
-        Table of Contents
-      </Text>
+        <Text
+          style={[
+            styles.headerText,
+            {
+              color: COLORS.text,
+            },
+          ]}
+        >
+          TABLE OF CONTENTS
+        </Text>
+        <Ionicons
+          name={isExpanded ? "chevron-up" : "chevron-down"}
+          size={16}
+          color={COLORS.textSecondary}
+        />
+      </Pressable>
 
-      <View style={styles.listContainer}>
-        {sections.map((section) => {
-          const isActive =
-            section.id === activeSectionId;
+      {isExpanded && (
+        <View style={styles.listContainer}>
+          {sections.map((section) => {
+            const isActive = section.id === activeSectionId;
 
-          return (
-            <Pressable
-              key={section.id}
-              onPress={() =>
-                onSectionPress(section.id)
-              }
-              style={[
-                styles.item,
-                isActive && {
-                  backgroundColor:
-                    `${COLORS.primary}10`,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.itemText,
-                  {
-                    color: isActive
-                      ? COLORS.primary
-                      : COLORS.textSecondary,
-                  },
-                  isActive &&
-                  styles.activeItemText,
-                ]}
+            return (
+              <Pressable
+                key={section.id}
+                onPress={() => onSectionPress(section.id)}
+                style={styles.item}
               >
-                {section.title}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+                <View style={styles.itemContent}>
+                  {isActive ? (
+                    <Ionicons
+                      name="caret-forward"
+                      size={12}
+                      color={COLORS.primary}
+                      style={styles.activeIcon}
+                    />
+                  ) : (
+                    <View style={styles.placeholderIcon} />
+                  )}
+                  <Text
+                    style={[
+                      styles.itemText,
+                      {
+                        color: isActive
+                          ? COLORS.primary
+                          : COLORS.textSecondary,
+                      },
+                      isActive && styles.activeItemText,
+                    ]}
+                  >
+                    {section.title}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 24,
-    padding: 18,
-    marginVertical: 20,
+    marginVertical: 16,
+  },
 
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-
-    elevation: 4,
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    marginBottom: 8,
   },
 
   headerText: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: "700",
-    marginBottom: 12,
+    letterSpacing: 1,
+    marginRight: 6,
   },
 
   listContainer: {
+    paddingVertical: 4,
     gap: 4,
   },
 
   item: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingVertical: 6,
+  },
+
+  itemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  activeIcon: {
+    marginRight: 6,
+    width: 12,
+  },
+
+  placeholderIcon: {
+    marginRight: 6,
+    width: 12,
   },
 
   itemText: {
-    fontSize: 15,
+    fontSize: 14,
+    flex: 1,
   },
 
   activeItemText: {

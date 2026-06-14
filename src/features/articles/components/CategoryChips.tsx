@@ -18,7 +18,7 @@ export default function CategoryChips({
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
-      className="py-4"
+      className="py-2"
     >
       {categories.map((category) => {
         const isActive = category === selectedCategory;
@@ -27,7 +27,7 @@ export default function CategoryChips({
           <Pressable
             key={category}
             onPress={() => onSelectCategory(category)}
-            className="px-4 py-2.5 rounded-full"
+            className="px-3 py-1.5 rounded-full"
             style={{
               backgroundColor: isActive
                 ? COLORS.primary
@@ -35,7 +35,7 @@ export default function CategoryChips({
             }}
           >
             <Text
-              className="text-sm font-semibold"
+              className="text-xs font-semibold"
               style={{
                 color: isActive
                   ? "#FFFFFF"
@@ -54,6 +54,6 @@ export default function CategoryChips({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    gap: 10,
+    gap: 8,
   },
 });

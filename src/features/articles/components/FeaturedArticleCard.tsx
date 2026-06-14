@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { Image } from "expo-image";
 import { COLORS } from "@/constants/colors";
 import { Article } from "../articleData";
 
@@ -17,38 +18,28 @@ export default function FeaturedArticleCard({
       onPress={onPress}
       style={({ pressed }) => [
         {
-          backgroundColor: "#FFFFFF",
+          backgroundColor: COLORS.surface,
+          borderColor: COLORS.border,
+          borderWidth: 1,
 
-          borderRadius: 28,
+          borderRadius: 16,
 
-          marginBottom: 24,
+          marginBottom: 20,
 
           opacity: pressed ? 0.96 : 1,
-
-          shadowColor: "#000",
-
-          shadowOffset: {
-            width: 0,
-            height: 12,
-          },
-
-          shadowOpacity: 0.16,
-
-          shadowRadius: 24,
-
-          elevation: 12,
         },
       ]}
     >
       <Image
-        source={require("../../../../assets/images/featured.png")}
+        source={article.image || require("../../../../assets/images/featured.png")}
         style={{
           width: "100%",
-          height: 220,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
+          aspectRatio: 16 / 9,
+          borderTopLeftRadius: 15,
+          borderTopRightRadius: 15,
         }}
-        resizeMode="cover"
+        contentFit="cover"
+        contentPosition={(article.focalPoint as any) || "center"}
       />
 
       <View className="p-5">

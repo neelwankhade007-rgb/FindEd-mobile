@@ -8,6 +8,7 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 FinEd/
 ├── app/                      # Expo Router routes only
 │   ├── _layout.tsx
+│   ├── article-detail.tsx    # Article detail screen route
 │   └── (tabs)/
 │       ├── _layout.tsx
 │       ├── index.tsx
@@ -17,6 +18,8 @@ FinEd/
 │       └── profile.tsx
 │
 ├── src/
+│   ├── components/           # Shared components
+│   │   └── header.tsx
 │   ├── constants/
 │   │   └── colors.ts
 │   └── features/
@@ -30,7 +33,14 @@ FinEd/
 │       ├── courses/
 │       │   └── CoursesScreen.tsx
 │       ├── articles/
-│       │   └── ArticlesScreen.tsx
+│       │   ├── ArticlesScreen.tsx
+│       │   ├── ArticleDetailScreen.tsx
+│       │   └── components/
+│       │       ├── ArticleListItem.tsx
+│       │       ├── ArticlesHeader.tsx
+│       │       ├── CategoryChips.tsx
+│       │       ├── FeaturedArticleCard.tsx
+│       │       └── TableOfContents.tsx
 │       ├── tools/
 │       │   └── ToolsScreen.tsx
 │       └── profile/

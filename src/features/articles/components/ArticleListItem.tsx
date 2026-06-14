@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { Image } from "expo-image";
 import { COLORS } from "@/constants/colors";
 import { Article } from "../articleData";
 
@@ -17,47 +18,27 @@ export default function ArticleListItem({
       onPress={onPress}
       style={({ pressed }) => [
         {
-          backgroundColor: "#FFFFFF",
+          backgroundColor: COLORS.surface,
+          borderColor: COLORS.border,
+          borderWidth: 1,
 
-          marginBottom: 16,
+          marginBottom: 12,
 
-          borderRadius: 24,
+          borderRadius: 12,
 
           opacity: pressed ? 0.96 : 1,
-
-          shadowColor: "#000",
-
-          shadowOffset: {
-            width: 0,
-            height: 10,
-          },
-
-          shadowOpacity: 0.14,
-
-          shadowRadius: 20,
-
-          elevation: 10,
         },
       ]}
     >
-      <View className="flex-row p-4">
-        <Image
-          source={require("../../../../assets/images/course_1.png")}
-          style={{
-            width: 110,
-            height: 110,
-            borderRadius: 18,
-          }}
-          resizeMode="cover"
-        />
-
-        <View className="flex-1 ml-4 justify-center">
-          <View className="flex-row items-center mb-2">
+      <View className="flex-row p-4 items-center justify-between">
+        <View className="flex-1 mr-4 justify-center">
+          <View className="flex-row items-center mb-1.5">
             <Text
               style={{
                 color: COLORS.primary,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: "700",
+                textTransform: "uppercase",
               }}
             >
               {article.category}
@@ -65,7 +46,7 @@ export default function ArticleListItem({
 
             <Text
               style={{
-                marginHorizontal: 8,
+                marginHorizontal: 6,
                 color: "#9CA3AF",
               }}
             >
@@ -75,7 +56,7 @@ export default function ArticleListItem({
             <Text
               style={{
                 color: "#9CA3AF",
-                fontSize: 12,
+                fontSize: 11,
               }}
             >
               {article.date}
@@ -86,10 +67,10 @@ export default function ArticleListItem({
             numberOfLines={2}
             style={{
               color: COLORS.text,
-              fontSize: 20,
+              fontSize: 17,
               fontWeight: "800",
-              lineHeight: 26,
-              marginBottom: 6,
+              lineHeight: 22,
+              marginBottom: 4,
             }}
           >
             {article.title}
@@ -99,13 +80,24 @@ export default function ArticleListItem({
             numberOfLines={2}
             style={{
               color: COLORS.textSecondary,
-              fontSize: 14,
-              lineHeight: 20,
+              fontSize: 13,
+              lineHeight: 18,
             }}
           >
             {article.excerpt}
           </Text>
         </View>
+
+        <Image
+          source={article.image || require("../../../../assets/images/course_1.png")}
+          style={{
+            width: 96,
+            height: 72,
+            borderRadius: 6,
+          }}
+          contentFit="cover"
+          contentPosition={(article.focalPoint as any) || "center"}
+        />
       </View>
     </Pressable>
   );
