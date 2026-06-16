@@ -66,6 +66,7 @@ export default function ArticleDetailScreen() {
 
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [readProgress, setReadProgress] = useState(0);
+  const [isTocExpanded, setIsTocExpanded] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const sectionLayouts = useRef<{ [key: string]: number }>({});
 
@@ -79,9 +80,11 @@ export default function ArticleDetailScreen() {
   }, [parsedContent]);
 
   const handleSectionPress = (sectionId: string) => {
+    setIsTocExpanded(false);
     const y = sectionLayouts.current[sectionId];
     if (y !== undefined) {
-      scrollViewRef.current?.scrollTo({ y: 220 + y - 10, animated: true });
+      // Offset to account for sticky TOC height (44px) and spacing
+      scrollViewRef.current?.scrollTo({ y: 220 + y - 55, animated: true });
       setActiveSection(sectionId);
     }
   };
@@ -256,6 +259,17 @@ export default function ArticleDetailScreen() {
         </View>
       </View>
 
+      {/* Sticky Table of Contents bar directly below the progress bar */}
+      {sections.length > 0 && (
+        <TableOfContents
+          sections={sections}
+          activeSectionId={activeSection}
+          onSectionPress={handleSectionPress}
+          isExpanded={isTocExpanded}
+          onToggleExpand={() => setIsTocExpanded(!isTocExpanded)}
+        />
+      )}
+
       <ScrollView
         ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
@@ -263,6 +277,12 @@ export default function ArticleDetailScreen() {
         scrollEventThrottle={16}
         onScroll={(event) => {
           const scrollY = event.nativeEvent.contentOffset.y;
+          
+          // Collapse TOC on scroll
+          if (isTocExpanded) {
+            setIsTocExpanded(false);
+          }
+
           const contentHeight = event.nativeEvent.contentSize.height;
           const layoutHeight = event.nativeEvent.layoutMeasurement.height;
           const maxScroll = contentHeight - layoutHeight;
@@ -282,7 +302,8 @@ export default function ArticleDetailScreen() {
           for (let i = 0; i < sortedSections.length; i++) {
             const section = sortedSections[i];
             const y = (sectionLayouts.current[section.id] || 0) + 220;
-            if (scrollY >= y - 40) {
+            // Offset logic adjusted for sticky TOC bar
+            if (scrollY >= y - 60) {
               activeId = section.id;
             }
           }
@@ -373,14 +394,7 @@ export default function ArticleDetailScreen() {
             </Text>
           </View>
 
-          {/* Table of Contents */}
-          {sections.length > 0 && (
-            <TableOfContents
-              sections={sections}
-              activeSectionId={activeSection}
-              onSectionPress={handleSectionPress}
-            />
-          )}
+
 
           {/* Body */}
           <View>
