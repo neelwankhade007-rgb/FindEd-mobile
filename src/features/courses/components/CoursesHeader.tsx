@@ -3,11 +3,13 @@ import { View, Pressable, Image, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
 
-interface HeaderProps {
+interface CoursesHeaderProps {
   onNotificationPress?: () => void;
 }
 
-export default function Header({ onNotificationPress }: HeaderProps) {
+export default function CoursesHeader({
+  onNotificationPress,
+}: CoursesHeaderProps) {
   return (
     <View style={styles.container}>
       <Image
