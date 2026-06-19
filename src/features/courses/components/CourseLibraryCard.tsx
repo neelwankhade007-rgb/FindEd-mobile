@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { COLORS } from "@/constants/colors";
 import { Course } from "../courseData";
 
@@ -28,9 +29,17 @@ export default function CourseLibraryCard({
     text: COLORS.textSecondary,
   };
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      router.push(`/course-journey?courseId=${course.id}`);
+    }
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.card,
         {
@@ -100,7 +109,7 @@ export default function CourseLibraryCard({
             styles.ctaButton,
             { opacity: pressed ? 0.9 : 1 },
           ]}
-          onPress={onPress}
+          onPress={handlePress}
         >
           <Text style={styles.ctaText}>
             {course.isEnrolled ? "Continue Learning" : (course.ctaText || "Explore Course")}
