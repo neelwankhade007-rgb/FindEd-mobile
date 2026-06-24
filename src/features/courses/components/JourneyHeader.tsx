@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "@/constants/colors";
 import type { CourseJourney } from "../courseData";
 
@@ -10,13 +11,13 @@ interface JourneyHeaderProps {
 }
 
 export default function JourneyHeader({ journey }: JourneyHeaderProps) {
-  const { title, description, progress, completedLessons, totalLessons, category } =
-    journey;
+  const { title, progress, completedLessons, totalLessons } = journey;
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
-      {/* Top bar: back button + category */}
-      <View style={styles.topBar}>
+    <View style={[styles.outerContainer, { paddingTop: insets.top }]}>
+      {/* Navigation Row */}
+      <View style={styles.navRow}>
         <Pressable
           onPress={() => router.back()}
           hitSlop={12}
@@ -25,126 +26,179 @@ export default function JourneyHeader({ journey }: JourneyHeaderProps) {
             { opacity: pressed ? 0.7 : 1 },
           ]}
         >
-          <Ionicons name="arrow-back" size={20} color="#FFF" />
+          <Ionicons name="chevron-back" size={20} color={COLORS.text} />
         </Pressable>
-
-        <View style={styles.categoryBadge}>
-          <Ionicons name="school-outline" size={12} color={COLORS.accent} />
-          <Text style={styles.categoryText}>{category}</Text>
-        </View>
-
-        {/* Progress percentage */}
-        <View style={styles.progressBadge}>
-          <Text style={styles.progressBadgeText}>{progress}%</Text>
-        </View>
+        <Text style={styles.navLabel}>Course</Text>
+        <View style={{ width: 32 }} />
       </View>
 
-      {/* Title */}
-      <Text style={styles.title}>{title}</Text>
+      {/* Main Card */}
+      <View style={styles.card}>
+        {/* Left Content */}
+        <View style={styles.cardLeft}>
+          {/* Title */}
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
 
-      {/* Description */}
-      <Text style={styles.description}>{description}</Text>
+          {/* Progress Row */}
+          <View style={styles.progressSection}>
+            <View style={styles.progressTextRow}>
+              <Text style={styles.progressLabel}>
+                {completedLessons}/{totalLessons} modules
+              </Text>
+              <Text style={styles.progressPercent}>{progress}%</Text>
+            </View>
+            <View style={styles.progressBarBg}>
+              <View
+                style={[styles.progressBarFill, { width: `${progress}%` }]}
+              />
+            </View>
+          </View>
 
-      {/* Progress bar */}
-      <View style={styles.progressSection}>
-        <View style={styles.progressBarBg}>
-          <View
-            style={[styles.progressBarFill, { width: `${progress}%` }]}
-          />
+          {/* Inline Stats */}
+          <View style={styles.statsRow}>
+            <View style={styles.statChip}>
+              <Ionicons name="star" size={12} color="#D97706" />
+              <Text style={styles.statText}>320 XP</Text>
+            </View>
+            <View style={styles.statChip}>
+              <Ionicons name="flame" size={12} color="#EF4444" />
+              <Text style={styles.statText}>4 day</Text>
+            </View>
+          </View>
         </View>
-        <Text style={styles.lessonCount}>
-          {completedLessons} of {totalLessons} completed
-        </Text>
+
+        {/* Right Visual */}
+        <View style={styles.cardRight}>
+          <View style={styles.illustrationCircle}>
+            <View style={styles.illustrationInner}>
+              <Ionicons name="trending-up" size={28} color={COLORS.primary} />
+            </View>
+          </View>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: COLORS.primaryDark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 6,
+  outerContainer: {
+    backgroundColor: COLORS.background,
+    paddingBottom: 4,
   },
-  topBar: {
+  navRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   backButton: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 10,
+    backgroundColor: COLORS.surface,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  categoryBadge: {
+  navLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.textSecondary,
+  },
+  card: {
+    flexDirection: "row",
+    backgroundColor: COLORS.primary,
+    marginHorizontal: 16,
+    borderRadius: 20,
+    padding: 16,
+    paddingRight: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  cardLeft: {
+    flex: 1,
+    gap: 10,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    lineHeight: 22,
+  },
+  progressSection: {
+    gap: 5,
+  },
+  progressTextRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  progressLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.7)",
+  },
+  progressPercent: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: COLORS.accent,
+  },
+  progressBarBg: {
+    height: 4,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: COLORS.accent,
+    borderRadius: 2,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  statChip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     backgroundColor: "rgba(255,255,255,0.12)",
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: 8,
   },
-  categoryText: {
+  statText: {
     fontSize: 10,
     fontWeight: "700",
-    color: COLORS.accent,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    color: "rgba(255,255,255,0.85)",
   },
-  progressBadge: {
-    backgroundColor: COLORS.accent,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+  cardRight: {
+    marginLeft: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  progressBadgeText: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: "#FFF",
+  illustrationCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#FFF",
-    marginBottom: 4,
-  },
-  description: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.75)",
-    lineHeight: 16,
-    marginBottom: 10,
-  },
-  progressSection: {
-    gap: 6,
-  },
-  progressBarBg: {
-    height: 5,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 2.5,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: COLORS.accent,
-    borderRadius: 2.5,
-  },
-  lessonCount: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.65)",
+  illustrationInner: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

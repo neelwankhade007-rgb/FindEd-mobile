@@ -13,23 +13,21 @@ interface JourneyConnectorProps {
 
 /**
  * Returns the horizontal offset for a node at the given index.
- * Creates a repeating S-curve: left → center → right → center → …
+ * Creates a repeating pattern: -40 → 0 → 40 → 0
  */
-export function getNodeOffset(index: number): "flex-start" | "center" | "flex-end" {
+export function getNodeOffset(index: number): number {
   const cycle = index % 4;
-  if (cycle === 0) return "flex-start";
-  if (cycle === 1) return "center";
-  if (cycle === 2) return "flex-end";
-  return "center";
+  if (cycle === 0) return -40;
+  if (cycle === 1) return 0;
+  if (cycle === 2) return 40;
+  return 0; // cycle === 3
 }
 
-// Map alignment to numeric center coordinates of the node wrapper (width: 140)
-function getCenter(align: "flex-start" | "center" | "flex-end"): number {
+// Get the absolute X coordinate relative to container width
+function getCenter(offset: number): number {
   const screenWidth = Dimensions.get("window").width;
   const containerWidth = screenWidth - 40; // 20px padding on each side
-  if (align === "flex-start") return 70; // 140 / 2
-  if (align === "flex-end") return containerWidth - 70;
-  return containerWidth / 2;
+  return (containerWidth / 2) + offset;
 }
 
 export default function JourneyConnector({
@@ -39,20 +37,21 @@ export default function JourneyConnector({
   const isCompleted = nextStatus === "completed" || nextStatus === "current";
   const lineColor = isCompleted ? COLORS.primary : COLORS.border;
 
-  const fromAlign = getNodeOffset(fromIndex);
-  const toAlign = getNodeOffset(fromIndex + 1);
+  const fromOffset = getNodeOffset(fromIndex);
+  const toOffset = getNodeOffset(fromIndex + 1);
 
-  const fromCenter = getCenter(fromAlign);
-  const toCenter = getCenter(toAlign);
+  const fromCenter = getCenter(fromOffset);
+  const toCenter = getCenter(toOffset);
 
   const screenWidth = Dimensions.get("window").width;
   const containerWidth = screenWidth - 40; // 20px padding on each side
+  const CONNECTOR_HEIGHT = 40;
 
   return (
     <View style={styles.container}>
-      <Svg width={containerWidth} height={64}>
+      <Svg width={containerWidth} height={CONNECTOR_HEIGHT}>
         <Path
-          d={`M ${fromCenter} 0 C ${fromCenter} 32, ${toCenter} 32, ${toCenter} 64`}
+          d={`M ${fromCenter} 0 C ${fromCenter} ${CONNECTOR_HEIGHT / 2}, ${toCenter} ${CONNECTOR_HEIGHT / 2}, ${toCenter} ${CONNECTOR_HEIGHT}`}
           fill="none"
           stroke={lineColor}
           strokeWidth={4.5}
@@ -66,7 +65,7 @@ export default function JourneyConnector({
 
 const styles = StyleSheet.create({
   container: {
-    height: 64,
+    height: 40,
     position: "relative",
   },
 });

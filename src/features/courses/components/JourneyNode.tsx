@@ -23,22 +23,20 @@ function getLessonIcon(
   type: Lesson["type"],
   status: LessonStatus
 ): { name: keyof typeof Ionicons.glyphMap; size: number } {
-  if (status === "locked") return { name: "lock-closed", size: 16 };
-  if (status === "completed") return { name: "book", size: 20 };
-  return { name: "star", size: 24 }; // Current lesson always uses a star
+  if (status === "locked") return { name: "lock-closed", size: 24 };
+  if (status === "completed") return { name: "checkmark-done", size: 28 };
+  return { name: "star", size: 28 }; // Current lesson always uses a star
 }
 
-const SMALL_NODE_SIZE = 44;
-const COMPLETED_NODE_SIZE = 50;
-const CURRENT_NODE_SIZE = 56;
-const GLOW_SIZE = 72;
+const NODE_SIZE = 72;
+const GLOW_SIZE = 90;
 
 export default function JourneyNode({
   lesson,
   index,
   onPress,
 }: JourneyNodeProps) {
-  const { status, type, title, subtitle, xpReward } = lesson;
+  const { status, type, title, xpReward } = lesson;
   const isCurrent = status === "current";
   const isCompleted = status === "completed";
   const isLocked = status === "locked";
@@ -67,23 +65,16 @@ export default function JourneyNode({
     opacity: pulseOpacity.value,
   }));
 
-  const align = getNodeOffset(index);
+  const offset = getNodeOffset(index);
   const icon = getLessonIcon(type, status);
 
   // Render Current Lesson (Adventure Map Landmark with Card and Star)
   if (isCurrent) {
-    // Determine card positioning based on horizontal alignment to avoid screen edge clipping
-    const isLeft = align === "flex-start";
-    const isRight = align === "flex-end";
+    const isLeft = offset < 0;
+    const isRight = offset > 0;
 
     return (
-      <View style={[styles.currentWrapper, { alignSelf: align }]}>
-        {/* Speech Bubble Callout */}
-        <View style={styles.bubbleCallout}>
-          <Text style={styles.bubbleText}>Ready for the next challenge?</Text>
-          <View style={styles.bubbleArrow} />
-        </View>
-
+      <View style={[styles.currentWrapper, { transform: [{ translateX: offset }] }]}>
         {/* Dynamic Card & Milestone Row */}
         <View
           style={[
@@ -106,19 +97,18 @@ export default function JourneyNode({
               },
             ]}
           >
-            {/* Thumbnail Box */}
             <View style={styles.thumbnailBox}>
               <Ionicons
-                name={type === "quiz" ? "help-circle" : type === "challenge" ? "flash" : "book"}
+                name={type === "quiz" ? "help-circle" : type === "challenge" ? "flash" : "play"}
                 size={22}
                 color={COLORS.primary}
               />
             </View>
             <View style={styles.cardInfo}>
-              <Text style={styles.currentTitle} numberOfLines={1}>
+              <Text style={styles.currentTitle} numberOfLines={2}>
                 {title}
               </Text>
-              <Text style={styles.currentXP}>{xpReward} XP</Text>
+              <Text style={styles.currentXP}>{xpReward} XP • 5 min</Text>
             </View>
           </Pressable>
 
@@ -140,17 +130,17 @@ export default function JourneyNode({
               style={({ pressed }) => [
                 styles.circle,
                 {
-                  width: CURRENT_NODE_SIZE,
-                  height: CURRENT_NODE_SIZE,
-                  borderRadius: CURRENT_NODE_SIZE / 2,
+                  width: NODE_SIZE,
+                  height: NODE_SIZE,
+                  borderRadius: NODE_SIZE / 2,
                   backgroundColor: COLORS.accent,
-                  borderWidth: 3,
+                  borderWidth: 4,
                   borderColor: "#FFFFFF",
                   transform: [{ scale: pressed ? 0.95 : 1 }],
                 },
               ]}
             >
-              <Ionicons name="star" size={26} color="#FFFFFF" />
+              <Ionicons name="star" size={32} color="#FFFFFF" />
             </Pressable>
           </View>
         </View>
@@ -161,17 +151,17 @@ export default function JourneyNode({
   // Render Completed Lesson (Gold milestone)
   if (isCompleted) {
     return (
-      <View style={[styles.wrapper, { alignSelf: align }]}>
+      <View style={[styles.wrapper, { transform: [{ translateX: offset }] }]}>
         <Pressable
           onPress={() => onPress?.(lesson)}
           style={({ pressed }) => [
             styles.circle,
             {
-              width: COMPLETED_NODE_SIZE,
-              height: COMPLETED_NODE_SIZE,
-              borderRadius: COMPLETED_NODE_SIZE / 2,
+              width: NODE_SIZE,
+              height: NODE_SIZE,
+              borderRadius: NODE_SIZE / 2,
               backgroundColor: COLORS.accent,
-              borderWidth: 2,
+              borderWidth: 3,
               borderColor: "#FFFFFF",
               transform: [{ scale: pressed ? 0.95 : 1 }],
             },
@@ -180,7 +170,7 @@ export default function JourneyNode({
           <Ionicons name={icon.name} size={icon.size} color="#FFFFFF" />
         </Pressable>
 
-        <Text style={styles.nodeTitle} numberOfLines={1}>
+        <Text style={styles.nodeTitle} numberOfLines={2}>
           {title}
         </Text>
 
@@ -193,16 +183,16 @@ export default function JourneyNode({
 
   // Render Locked Lesson (Grey Milestone)
   return (
-    <View style={[styles.wrapper, { alignSelf: align }]}>
+    <View style={[styles.wrapper, { transform: [{ translateX: offset }], opacity: 0.5 }]}>
       <View
         style={[
           styles.circle,
           {
-            width: SMALL_NODE_SIZE,
-            height: SMALL_NODE_SIZE,
-            borderRadius: SMALL_NODE_SIZE / 2,
+            width: NODE_SIZE,
+            height: NODE_SIZE,
+            borderRadius: NODE_SIZE / 2,
             backgroundColor: "#E5E7EB",
-            borderWidth: 1.5,
+            borderWidth: 2,
             borderColor: COLORS.border,
           },
         ]}
@@ -210,7 +200,7 @@ export default function JourneyNode({
         <Ionicons name="lock-closed" size={icon.size} color={COLORS.inactive} />
       </View>
 
-      <Text style={[styles.nodeTitle, { color: COLORS.inactive }]} numberOfLines={1}>
+      <Text style={[styles.nodeTitle, { color: COLORS.inactive }]} numberOfLines={2}>
         {title}
       </Text>
     </View>
@@ -220,12 +210,14 @@ export default function JourneyNode({
 const styles = StyleSheet.create({
   wrapper: {
     alignItems: "center",
+    alignSelf: "center",
     width: 140,
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   currentWrapper: {
     alignItems: "center",
-    paddingVertical: 8,
+    alignSelf: "center",
+    paddingVertical: 4,
     zIndex: 10,
   },
   nodeContainer: {
@@ -244,10 +236,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     shadowColor: COLORS.text,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   landmarkRow: {
     alignItems: "center",
@@ -257,91 +249,63 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.surface,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
-    padding: 10,
-    width: 190,
+    padding: 12,
+    width: 200,
     shadowColor: COLORS.text,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 5,
     zIndex: 2,
   },
   thumbnailBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     backgroundColor: `${COLORS.primary}10`,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: 12,
   },
   cardInfo: {
     flex: 1,
   },
   currentTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "800",
     color: COLORS.text,
+    lineHeight: 18,
   },
   currentXP: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     color: COLORS.accent,
-    marginTop: 2,
-  },
-  bubbleCallout: {
-    backgroundColor: COLORS.text,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    marginBottom: 6,
-    position: "relative",
-    alignItems: "center",
-    shadowColor: COLORS.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  bubbleText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "800",
-  },
-  bubbleArrow: {
-    position: "absolute",
-    bottom: -5,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    borderTopWidth: 5,
-    borderLeftColor: "transparent",
-    borderRightColor: "transparent",
-    borderTopColor: COLORS.text,
+    marginTop: 4,
   },
   nodeTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "700",
     color: COLORS.textSecondary,
     textAlign: "center",
-    marginTop: 6,
-    maxWidth: 120,
+    marginTop: 8,
+    maxWidth: 130,
+    lineHeight: 16,
   },
   completedBadge: {
-    backgroundColor: "rgba(79, 70, 229, 0.08)",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginTop: 4,
+    backgroundColor: "rgba(245, 158, 11, 0.1)",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginTop: 6,
   },
   completedText: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "800",
-    color: COLORS.primary,
+    color: COLORS.accent,
     letterSpacing: 0.5,
   },
 });
+

@@ -13,10 +13,8 @@ import JourneyNode from "./components/JourneyNode";
 import JourneyConnector, { getNodeOffset } from "./components/JourneyConnector";
 import JourneyTrophy from "./components/JourneyTrophy";
 
-function getCenter(align: "flex-start" | "center" | "flex-end", width: number): number {
-  if (align === "flex-start") return 70;
-  if (align === "flex-end") return width - 70;
-  return width / 2;
+function getCenter(offset: number, width: number): number {
+  return (width / 2) + offset;
 }
 
 export default function CourseJourneyScreen() {
@@ -29,8 +27,8 @@ export default function CourseJourneyScreen() {
     if (!journey) return;
     const currentIndex = journey.lessons.findIndex((l) => l.status === "current");
     if (currentIndex > 2) {
-      // Rough estimate: each node+connector pair ≈ 120px (node height + 64px connector + margins)
-      const scrollTarget = currentIndex * 120 - 100;
+      // Rough estimate: each node+connector pair ≈ 112px (72px node + 40px connector)
+      const scrollTarget = currentIndex * 112 - 100;
       setTimeout(() => {
         scrollViewRef.current?.scrollTo({ y: scrollTarget, animated: true });
       }, 400);
@@ -63,12 +61,12 @@ export default function CourseJourneyScreen() {
 
   // Calculate coordinates for final trophy curve
   const lastIndex = journey.lessons.length - 1;
-  const lastAlign = getNodeOffset(lastIndex);
-  const lastCenter = getCenter(lastAlign, containerWidth);
+  const lastOffset = getNodeOffset(lastIndex);
+  const lastCenter = getCenter(lastOffset, containerWidth);
   const trophyCenter = containerWidth / 2;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <View style={styles.safeArea}>
       {/* Header */}
       <JourneyHeader journey={journey} />
 
@@ -124,7 +122,7 @@ export default function CourseJourneyScreen() {
           isCompleted={allCompleted}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

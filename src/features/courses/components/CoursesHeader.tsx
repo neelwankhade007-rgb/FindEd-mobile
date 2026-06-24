@@ -2,6 +2,7 @@ import React from "react";
 import { View, Pressable, Image, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface CoursesHeaderProps {
   onNotificationPress?: () => void;
@@ -17,7 +18,6 @@ export default function CoursesHeader({
         style={styles.logo}
         resizeMode="contain"
       />
-
       <Pressable
         onPress={onNotificationPress}
         style={({ pressed }) => [
