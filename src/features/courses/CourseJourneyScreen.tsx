@@ -14,7 +14,7 @@ import JourneyConnector, { getNodeOffset } from "./components/JourneyConnector";
 import JourneyTrophy from "./components/JourneyTrophy";
 
 function getCenter(offset: number, width: number): number {
-  return (width / 2) + offset;
+  return 75 + offset;
 }
 
 export default function CourseJourneyScreen() {
@@ -48,7 +48,7 @@ export default function CourseJourneyScreen() {
           <Ionicons name="alert-circle-outline" size={56} color={COLORS.inactive} />
           <Text style={styles.errorTitle}>Course not found</Text>
           <Text style={styles.errorSubtitle}>
-            We couldn't load this course journey. Please go back and try again.
+            We couldn&apos;t load this course journey. Please go back and try again.
           </Text>
         </View>
       </SafeAreaView>

@@ -17,17 +17,15 @@ interface JourneyConnectorProps {
  */
 export function getNodeOffset(index: number): number {
   const cycle = index % 4;
-  if (cycle === 0) return -40;
+  if (cycle === 0) return -20;
   if (cycle === 1) return 0;
-  if (cycle === 2) return 40;
+  if (cycle === 2) return 20;
   return 0; // cycle === 3
 }
 
 // Get the absolute X coordinate relative to container width
 function getCenter(offset: number): number {
-  const screenWidth = Dimensions.get("window").width;
-  const containerWidth = screenWidth - 40; // 20px padding on each side
-  return (containerWidth / 2) + offset;
+  return 75 + offset;
 }
 
 export default function JourneyConnector({
