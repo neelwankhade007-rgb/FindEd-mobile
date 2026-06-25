@@ -112,6 +112,7 @@ export default function CourseJourneyScreen() {
             totalHeight={layout.totalHeight}
           />
 
+
           {/* 2. Lesson nodes with persistent inline labels */}
           {layout.nodes.map((node) => (
             <JourneyNode

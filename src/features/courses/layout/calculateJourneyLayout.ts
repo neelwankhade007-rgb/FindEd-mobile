@@ -34,14 +34,13 @@ export function calculateJourneyLayout(
 
   const nodeCoords: NodeCoordinate[] = [];
   const labelAnchors: Record<string, LabelAnchor> = {};
-  const cardAnchors: Record<string, CardAnchor> = {};
+  const recordCardAnchors: Record<string, CardAnchor> = {};
 
   // 1. Calculate lesson nodes
   lessons.forEach((lesson, index) => {
-    let x = CENTER_X;
-    if (index > 0) {
-      x = index % 2 === 1 ? LEFT_X : RIGHT_X;
-    }
+    // Start on the right side and alternate (Right -> Left -> Right -> Left...)
+    // This ensures every segment between consecutive nodes has identical length and angle.
+    const x = index % 2 === 0 ? RIGHT_X : LEFT_X;
     const y = Y_OFFSET_START + index * NODE_SPACING;
     const isCompleted = lesson.status === "completed";
 
@@ -57,7 +56,6 @@ export function calculateJourneyLayout(
     });
 
     // 2. Calculate Label Anchor — persistent inline title + badge
-    // Labels always appear on the opposite side of the node from the path curve
     const labelSide: "left" | "right" = x <= CENTER_X ? "right" : "left";
     const labelX = labelSide === "right"
       ? x + NODE_RADIUS + LABEL_GAP_X
@@ -66,16 +64,13 @@ export function calculateJourneyLayout(
     labelAnchors[lesson.id] = {
       id: lesson.id,
       x: labelX,
-      y, // vertically centered on the node
+      y,
       side: labelSide,
     };
 
     // 3. Calculate Card Anchor — detail card for selected/current lesson
-    // Anchor card to expand vertically below the node.
-    // 24dp spacing below the node radius.
     const cardY = y + NODE_RADIUS + 24;
 
-    // Center the card horizontally on the node, but clamp to screen edges
     let finalX = x - CARD_MAX_WIDTH / 2;
     if (finalX < CARD_SAFETY_MARGIN) {
       finalX = CARD_SAFETY_MARGIN;
@@ -83,7 +78,7 @@ export function calculateJourneyLayout(
       finalX = screenWidth - CARD_SAFETY_MARGIN - CARD_MAX_WIDTH;
     }
 
-    cardAnchors[lesson.id] = {
+    recordCardAnchors[lesson.id] = {
       id: lesson.id,
       x: finalX,
       y: cardY,
@@ -94,15 +89,14 @@ export function calculateJourneyLayout(
   });
 
   // 4. Calculate Trophy Node
-  const trophyIndex = lessons.length;
-  const trophyY = Y_OFFSET_START + trophyIndex * NODE_SPACING;
+  const trophyY = Y_OFFSET_START + lessons.length * NODE_SPACING;
   const allCompleted = lessons.every((l) => l.status === "completed");
 
   const trophyNode: NodeCoordinate = {
     id: "trophy",
     x: CENTER_X,
     y: trophyY,
-    index: trophyIndex,
+    index: lessons.length,
     type: "trophy",
     isCompleted: allCompleted,
     status: allCompleted ? "completed" : "locked",
@@ -121,7 +115,7 @@ export function calculateJourneyLayout(
     nodes: nodeCoords,
     trophy: trophyNode,
     labelAnchors,
-    cardAnchors,
+    cardAnchors: recordCardAnchors,
     svgPath,
     svgProgressPath,
   };

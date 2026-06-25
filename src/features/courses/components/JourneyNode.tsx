@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
@@ -109,6 +109,8 @@ const JourneyNode = React.memo(function JourneyNode({
   const scaleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+
+  const { width: screenWidth } = useWindowDimensions();
 
   // Status badge
   const headerTag = isCompleted
@@ -229,13 +231,9 @@ const JourneyNode = React.memo(function JourneyNode({
             styles.inlineLabel,
             {
               left: labelAnchor.side === "right" ? labelAnchor.x : undefined,
-              right: labelAnchor.side === "left" ? undefined : undefined,
+              right: labelAnchor.side === "left" ? screenWidth - labelAnchor.x : undefined,
               top: y - 18, // vertically center the ~36px label block on the node center
-            },
-            labelAnchor.side === "left" && {
-              right: undefined,
-              left: labelAnchor.x - 180, // position from left edge, label width ~180
-              alignItems: "flex-end",
+              alignItems: labelAnchor.side === "left" ? "flex-end" : "flex-start",
             },
           ]}
         >
