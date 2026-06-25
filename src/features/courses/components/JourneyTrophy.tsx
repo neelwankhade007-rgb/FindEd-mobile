@@ -1,21 +1,52 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 import { COLORS } from "@/constants/colors";
 
 interface JourneyTrophyProps {
   courseTitle: string;
   isCompleted?: boolean;
+  x: number;
+  y: number;
 }
 
-export default function JourneyTrophy({
+const JourneyTrophy = React.memo(function JourneyTrophy({
   courseTitle,
   isCompleted = false,
+  x,
+  y,
 }: JourneyTrophyProps) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (isCompleted) {
+      scale.value = withSpring(1.15, { damping: 8, stiffness: 80 });
+    } else {
+      scale.value = 1;
+    }
+  }, [isCompleted]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          left: x - 130, // Centered horizontally at x (width is 260)
+          top: y - 55,  // Centered vertically on the trophy glow circle (glow height is 110)
+        },
+      ]}
+    >
       {/* Trophy icon with glow */}
-      <View
+      <Animated.View
         style={[
           styles.trophyGlow,
           {
@@ -23,6 +54,7 @@ export default function JourneyTrophy({
               ? "rgba(245, 158, 11, 0.15)"
               : "rgba(209, 213, 219, 0.2)",
           },
+          animatedStyle,
         ]}
       >
         <View
@@ -39,7 +71,7 @@ export default function JourneyTrophy({
             color={isCompleted ? "#FFF" : COLORS.inactive}
           />
         </View>
-      </View>
+      </Animated.View>
 
       {/* Title */}
       <Text
@@ -68,13 +100,14 @@ export default function JourneyTrophy({
       )}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
+    position: "absolute",
     alignItems: "center",
-    paddingVertical: 24,
-    paddingHorizontal: 24,
+    width: 260,
+    zIndex: 100,
   },
   trophyGlow: {
     width: 110,
@@ -108,7 +141,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: "center",
     lineHeight: 19,
-    maxWidth: 260,
+    maxWidth: 240,
   },
   starsRow: {
     flexDirection: "row",
@@ -117,3 +150,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 });
+
+export default JourneyTrophy;

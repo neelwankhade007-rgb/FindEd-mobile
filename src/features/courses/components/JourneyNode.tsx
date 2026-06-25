@@ -6,16 +6,21 @@ import Animated, {
   useAnimatedStyle,
   withRepeat,
   withTiming,
+  withSpring,
   Easing,
 } from "react-native-reanimated";
 import { COLORS } from "@/constants/colors";
 import type { Lesson, LessonStatus } from "../courseData";
-import { getNodeOffset } from "./JourneyConnector";
+import type { LabelAnchor } from "../types/journeyLayout";
+import { LAYOUT_CONSTANTS } from "../layout/layoutConfig";
 
 interface JourneyNodeProps {
   lesson: Lesson;
-  index: number;
-  onPress?: (lesson: Lesson) => void;
+  x: number;
+  y: number;
+  labelAnchor?: LabelAnchor;
+  isSelected: boolean;
+  onPress: (lesson: Lesson) => void;
 }
 
 // Icon picker based on lesson title and type
@@ -40,27 +45,34 @@ function getLessonIcon(
   if (type === "challenge") {
     return <Ionicons name="flash" size={size} color={color} />;
   }
-  
-  // Default is a book icon
+
   return <Ionicons name="book" size={size} color={color} />;
 }
 
-const NODE_SIZE = 64;
 const GLOW_SIZE = 82;
 
-export default function JourneyNode({
+const JourneyNode = React.memo(function JourneyNode({
   lesson,
-  index,
+  x,
+  y,
+  labelAnchor,
+  isSelected,
   onPress,
 }: JourneyNodeProps) {
-  const { status, type, title, subtitle, xpReward, durationMins } = lesson;
+  const { status, type, title } = lesson;
   const isCurrent = status === "current";
   const isCompleted = status === "completed";
+  const isLocked = status === "locked";
 
-  // Pulse animation for current node
+  const { NODE_RADIUS } = LAYOUT_CONSTANTS;
+  const nodeSize = NODE_RADIUS * 2;
+
+  // Animation values
   const pulseScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.4);
+  const scale = useSharedValue(1);
 
+  // Pulse animation for current node
   useEffect(() => {
     if (isCurrent) {
       pulseScale.value = withRepeat(
@@ -73,44 +85,64 @@ export default function JourneyNode({
         -1,
         true
       );
+    } else {
+      pulseScale.value = 1;
+      pulseOpacity.value = 0.4;
     }
-  }, [isCurrent, pulseScale, pulseOpacity]);
+  }, [isCurrent]);
+
+  // Spring scale-in animation for completed nodes
+  useEffect(() => {
+    if (isCompleted) {
+      scale.value = 0;
+      scale.value = withSpring(1, { damping: 12, stiffness: 90 });
+    } else {
+      scale.value = 1;
+    }
+  }, [isCompleted]);
 
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseScale.value }],
     opacity: pulseOpacity.value,
   }));
 
-  const offset = getNodeOffset(index);
+  const scaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
-  // Render Current Lesson (Adventure Map Landmark with Card and Star)
-  if (isCurrent) {
-    const description = subtitle || "Learn simple ways to master this module and build a better future.";
+  // Status badge
+  const headerTag = isCompleted
+    ? "COMPLETED"
+    : isCurrent
+    ? "CURRENT MODULE"
+    : "LOCKED";
 
-    return (
-      <View style={[styles.currentWrapper, { transform: [{ translateX: offset }] }]}>
-        {/* Glowing Milestone Circle on Left */}
-        <View style={styles.nodeContainer}>
-          <Animated.View
-            style={[
-              styles.glowRing,
-              {
-                width: GLOW_SIZE,
-                height: GLOW_SIZE,
-                borderRadius: GLOW_SIZE / 2,
-              },
-              pulseStyle,
-            ]}
-          />
+  const badgeStyle = isCompleted
+    ? styles.completedBadge
+    : isCurrent
+    ? styles.currentBadge
+    : styles.lockedBadge;
+
+  const badgeTextStyle = isCompleted
+    ? styles.completedBadgeText
+    : isCurrent
+    ? styles.currentBadgeText
+    : styles.lockedBadgeText;
+
+  const renderMilestoneCircle = () => {
+    if (isCurrent) {
+      return (
+        <View style={styles.currentContainer}>
+          <Animated.View style={[styles.glowRing, pulseStyle]} />
           <Pressable
-            onPress={() => onPress?.(lesson)}
+            onPress={() => onPress(lesson)}
             style={({ pressed }) => [
               styles.circle,
               {
-                width: NODE_SIZE,
-                height: NODE_SIZE,
-                borderRadius: NODE_SIZE / 2,
-                backgroundColor: COLORS.primary, // Purple
+                width: nodeSize,
+                height: nodeSize,
+                borderRadius: NODE_RADIUS,
+                backgroundColor: COLORS.primary,
                 borderWidth: 4,
                 borderColor: "#FFFFFF",
                 transform: [{ scale: pressed ? 0.95 : 1 }],
@@ -120,67 +152,21 @@ export default function JourneyNode({
             <Ionicons name="flash" size={28} color="#FFFFFF" />
           </Pressable>
         </View>
+      );
+    }
 
-        {/* Interactive Card on Right */}
-        <Pressable
-          onPress={() => onPress?.(lesson)}
-          style={({ pressed }) => [
-            styles.currentCard,
-            {
-              opacity: pressed ? 0.96 : 1,
-            },
-          ]}
-        >
-          {/* Card Arrow Pointer pointing to the node */}
-          <View style={styles.cardArrow} />
-
-          <View style={styles.cardHeaderTag}>
-            <Text style={styles.cardHeaderTagText}>CURRENT MODULE</Text>
-          </View>
-
-          <Text style={styles.currentTitle} numberOfLines={1}>
-            {title}
-          </Text>
-
-          <Text style={styles.currentDescription} numberOfLines={2}>
-            {description}
-          </Text>
-
-          {/* Stats Row */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statPill}>
-              <Ionicons name="star" size={12} color={COLORS.primary} />
-              <Text style={styles.statPillText}>{xpReward} XP</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Ionicons name="time" size={12} color={COLORS.textSecondary} />
-              <Text style={styles.statPillText}>{durationMins} min</Text>
-            </View>
-          </View>
-
-          {/* Chevron Navigation Indicator */}
-          <View style={styles.chevronContainer}>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
-          </View>
-        </Pressable>
-      </View>
-    );
-  }
-
-  // Render Completed Lesson (Gold milestone)
-  if (isCompleted) {
-    return (
-      <View style={[styles.completedWrapper, { transform: [{ translateX: offset }] }]}>
-        <View style={styles.completedCircleContainer}>
+    if (isCompleted) {
+      return (
+        <Animated.View style={[styles.completedContainer, scaleStyle]}>
           <Pressable
-            onPress={() => onPress?.(lesson)}
+            onPress={() => onPress(lesson)}
             style={({ pressed }) => [
               styles.circle,
               {
-                width: NODE_SIZE,
-                height: NODE_SIZE,
-                borderRadius: NODE_SIZE / 2,
-                backgroundColor: COLORS.accent, // Yellow/Orange
+                width: nodeSize,
+                height: nodeSize,
+                borderRadius: NODE_RADIUS,
+                backgroundColor: COLORS.accent,
                 borderWidth: 3,
                 borderColor: "#FFFFFF",
                 transform: [{ scale: pressed ? 0.95 : 1 }],
@@ -189,98 +175,111 @@ export default function JourneyNode({
           >
             {getLessonIcon(title, type, status)}
           </Pressable>
-
-          {/* Overlapping green checkmark badge */}
           <View style={styles.checkmarkBadge}>
             <Ionicons name="checkmark-sharp" size={12} color="#FFFFFF" />
           </View>
-        </View>
+        </Animated.View>
+      );
+    }
 
-        <View style={styles.detailsContainer}>
-          <Text style={styles.nodeTitle} numberOfLines={1}>
-            {title}
-          </Text>
-          <View style={styles.completedBadge}>
-            <Text style={styles.completedText}>COMPLETED</Text>
-          </View>
-        </View>
-      </View>
-    );
-  }
-
-  // Render Locked Lesson (Grey Milestone)
-  return (
-    <View style={[styles.lockedWrapper, { transform: [{ translateX: offset }] }]}>
-      <View
-        style={[
+    // Locked node state
+    return (
+      <Pressable
+        onPress={() => onPress(lesson)}
+        style={({ pressed }) => [
           styles.circle,
           {
-            width: NODE_SIZE,
-            height: NODE_SIZE,
-            borderRadius: NODE_SIZE / 2,
+            width: nodeSize,
+            height: nodeSize,
+            borderRadius: NODE_RADIUS,
             backgroundColor: "#F3F4F6",
             borderWidth: 2,
             borderColor: "#E5E7EB",
+            transform: [{ scale: pressed ? 0.95 : 1 }],
           },
         ]}
       >
         {getLessonIcon(title, type, status)}
+      </Pressable>
+    );
+  };
+
+  return (
+    <>
+      {/* Milestone circle — absolutely positioned at node center */}
+      <View
+        style={[
+          styles.absoluteNode,
+          {
+            left: x - NODE_RADIUS,
+            top: y - NODE_RADIUS,
+            width: nodeSize,
+            height: nodeSize,
+          },
+        ]}
+      >
+        {renderMilestoneCircle()}
       </View>
 
-      <View style={styles.detailsContainer}>
-        <Text style={[styles.nodeTitle, { color: COLORS.inactive }]} numberOfLines={1}>
-          {title}
-        </Text>
-        <View style={styles.lockedBadge}>
-          <Text style={styles.lockedText}>LOCKED</Text>
-        </View>
-      </View>
-    </View>
+      {/* Persistent inline label — title + status badge, always visible */}
+      {labelAnchor && (
+        <Pressable
+          onPress={() => onPress(lesson)}
+          style={[
+            styles.inlineLabel,
+            {
+              left: labelAnchor.side === "right" ? labelAnchor.x : undefined,
+              right: labelAnchor.side === "left" ? undefined : undefined,
+              top: y - 18, // vertically center the ~36px label block on the node center
+            },
+            labelAnchor.side === "left" && {
+              right: undefined,
+              left: labelAnchor.x - 180, // position from left edge, label width ~180
+              alignItems: "flex-end",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.inlineTitle,
+              isLocked && { color: COLORS.inactive },
+              isCurrent && { fontSize: 16, fontWeight: "900", color: COLORS.primary },
+            ]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          <View style={badgeStyle}>
+            <Text style={badgeTextStyle}>{headerTag}</Text>
+          </View>
+        </Pressable>
+      )}
+    </>
   );
-}
+});
 
 const styles = StyleSheet.create({
-  completedWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    height: 84,
-    position: "relative",
-  },
-  lockedWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    height: 84,
-    position: "relative",
-    opacity: 0.85,
-  },
-  currentWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    height: 140,
-    position: "relative",
-    zIndex: 10,
-  },
-  nodeContainer: {
+  absoluteNode: {
     position: "absolute",
-    left: 75 - GLOW_SIZE / 2,
     alignItems: "center",
     justifyContent: "center",
-    height: GLOW_SIZE,
-    width: GLOW_SIZE,
-    zIndex: 5,
+    zIndex: 100,
   },
-  completedCircleContainer: {
-    position: "absolute",
-    left: 75 - NODE_SIZE / 2,
-    width: NODE_SIZE,
-    height: NODE_SIZE,
+  currentContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: GLOW_SIZE,
+    height: GLOW_SIZE,
   },
   glowRing: {
     position: "absolute",
-    backgroundColor: "rgba(79, 70, 229, 0.18)", // Soft purple glow
+    width: GLOW_SIZE,
+    height: GLOW_SIZE,
+    borderRadius: GLOW_SIZE / 2,
+    backgroundColor: "rgba(79, 70, 229, 0.18)",
+  },
+  completedContainer: {
+    position: "relative",
   },
   circle: {
     alignItems: "center",
@@ -298,7 +297,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#10B981", // Green check badge
+    backgroundColor: "#10B981",
     borderWidth: 2,
     borderColor: "#FFFFFF",
     alignItems: "center",
@@ -309,30 +308,45 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  detailsContainer: {
+
+  // ── Persistent inline label styles ────────────────────────
+  inlineLabel: {
     position: "absolute",
-    left: 75 + NODE_SIZE / 2 + 16,
-    right: 16,
-    justifyContent: "center",
+    zIndex: 50,
+    maxWidth: 180,
   },
-  nodeTitle: {
-    fontSize: 15,
+  inlineTitle: {
+    fontSize: 14,
     fontWeight: "700",
     color: "#1F2937",
     lineHeight: 18,
   },
   completedBadge: {
     alignSelf: "flex-start",
-    backgroundColor: "#E6F4EA", // light green background
+    backgroundColor: "#E6F4EA",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
-    marginTop: 4,
+    marginTop: 3,
   },
-  completedText: {
+  completedBadgeText: {
     fontSize: 9,
     fontWeight: "800",
-    color: "#137333", // dark green text
+    color: "#137333",
+    letterSpacing: 0.5,
+  },
+  currentBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#EEF2FF",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 3,
+  },
+  currentBadgeText: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: "#4F46E5",
     letterSpacing: 0.5,
   },
   lockedBadge: {
@@ -341,94 +355,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
-    marginTop: 4,
+    marginTop: 3,
   },
-  lockedText: {
+  lockedBadgeText: {
     fontSize: 9,
     fontWeight: "800",
     color: "#6B7280",
     letterSpacing: 0.5,
-  },
-  currentCard: {
-    position: "absolute",
-    left: 75 + NODE_SIZE / 2 + 12,
-    right: 12,
-    backgroundColor: "#FAF9FF", // Very light purple
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#E5DFFF", // Soft purple border
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    shadowColor: "#6366F1",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
-    zIndex: 2,
-  },
-  cardArrow: {
-    position: "absolute",
-    left: -6,
-    top: "50%",
-    marginTop: -6,
-    width: 12,
-    height: 12,
-    backgroundColor: "#FAF9FF",
-    borderLeftWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#E5DFFF",
-    transform: [{ rotate: "45deg" }],
-    zIndex: 1,
-  },
-  cardHeaderTag: {
-    alignSelf: "flex-start",
-    backgroundColor: "#EEF2FF", // light indigo badge
-    paddingHorizontal: 8,
-    paddingVertical: 2.5,
-    borderRadius: 6,
-    marginBottom: 6,
-  },
-  cardHeaderTagText: {
-    fontSize: 9,
-    fontWeight: "850",
-    color: "#4F46E5",
-    letterSpacing: 0.5,
-  },
-  currentTitle: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  currentDescription: {
-    fontSize: 12,
-    fontWeight: "400",
-    color: "#6B7280",
-    marginBottom: 10,
-    lineHeight: 16,
-  },
-  statsContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  statPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EEF2FF", // Light purple pill background
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    gap: 4,
-  },
-  statPillText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#4B5563",
-  },
-  chevronContainer: {
-    position: "absolute",
-    right: 14,
-    top: "50%",
-    marginTop: -9,
   },
 });
+
+export default JourneyNode;

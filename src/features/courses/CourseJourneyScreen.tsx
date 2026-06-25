@@ -1,47 +1,73 @@
-import React, { useRef, useEffect } from "react";
-import { ScrollView, View, Text, StyleSheet, Dimensions } from "react-native";
+import React, { useRef, useEffect, useState, useMemo } from "react";
+import { ScrollView, View, Text, StyleSheet, BackHandler, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Svg, { Path } from "react-native-svg";
 import { COLORS } from "@/constants/colors";
 import { getCourseJourney } from "./courseData";
 import type { Lesson } from "./courseData";
 
 import JourneyHeader from "./components/JourneyHeader";
 import JourneyNode from "./components/JourneyNode";
-import JourneyConnector, { getNodeOffset } from "./components/JourneyConnector";
+import JourneyCard from "./components/JourneyCard";
 import JourneyTrophy from "./components/JourneyTrophy";
-
-function getCenter(offset: number, width: number): number {
-  return 75 + offset;
-}
+import JourneyPath from "./components/JourneyPath";
+import { calculateJourneyLayout } from "./layout/calculateJourneyLayout";
+import { LAYOUT_CONSTANTS } from "./layout/layoutConfig";
 
 export default function CourseJourneyScreen() {
   const { courseId } = useLocalSearchParams<{ courseId: string }>();
   const journey = getCourseJourney(courseId ?? "");
   const scrollViewRef = useRef<ScrollView>(null);
+  const { width: windowWidth } = useWindowDimensions();
+
+  // State to track which lesson is currently selected to display its description card
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+
+  // 1. Calculate deterministic layout using centralized config and current screen width
+  const layout = useMemo(() => {
+    if (!journey) return null;
+    return calculateJourneyLayout(journey.lessons, windowWidth);
+  }, [journey, windowWidth]);
 
   // Auto-scroll to current lesson on mount
   useEffect(() => {
     if (!journey) return;
     const currentIndex = journey.lessons.findIndex((l) => l.status === "current");
+
     if (currentIndex > 2) {
-      // Rough estimate: each node+connector pair ≈ 112px (72px node + 40px connector)
-      const scrollTarget = currentIndex * 112 - 100;
+      const scrollTarget = currentIndex * LAYOUT_CONSTANTS.NODE_SPACING - 100;
       setTimeout(() => {
         scrollViewRef.current?.scrollTo({ y: scrollTarget, animated: true });
       }, 400);
     }
   }, [journey]);
 
+  // Handle hardware back button to close selected details card first
+  useEffect(() => {
+    const onBackPress = () => {
+      if (selectedLesson !== null) {
+        setSelectedLesson(null);
+        return true;
+      }
+      return false;
+    };
+
+    const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () => subscription.remove();
+  }, [selectedLesson]);
+
   const handleLessonPress = (lesson: Lesson) => {
-    // TODO: Navigate to lesson content screen
+    if (selectedLesson?.id === lesson.id) {
+      setSelectedLesson(null);
+    } else {
+      setSelectedLesson(lesson);
+    }
     console.log("Lesson pressed:", lesson.id, lesson.title);
   };
 
   // ── Error state ───────────────────────────────────────────
-  if (!journey) {
+  if (!journey || !layout) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.errorContainer}>
@@ -56,17 +82,10 @@ export default function CourseJourneyScreen() {
   }
 
   const allCompleted = journey.lessons.every((l) => l.status === "completed");
-  const screenWidth = Dimensions.get("window").width;
-  const containerWidth = screenWidth - 40; // 20px padding on each side
-
-  // Calculate coordinates for final trophy curve
-  const lastIndex = journey.lessons.length - 1;
-  const lastOffset = getNodeOffset(lastIndex);
-  const lastCenter = getCenter(lastOffset, containerWidth);
-  const trophyCenter = containerWidth / 2;
+  const activeCardAnchor = selectedLesson ? layout.cardAnchors[selectedLesson.id] : null;
 
   return (
-    <View style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       {/* Header */}
       <JourneyHeader journey={journey} />
 
@@ -83,46 +102,49 @@ export default function CourseJourneyScreen() {
           <View style={styles.journeyLabelLine} />
         </View>
 
-        {/* Path: interleaved nodes and connectors */}
-        <View style={styles.pathContainer}>
-          {journey.lessons.map((lesson, index) => (
-            <React.Fragment key={lesson.id}>
-              <JourneyNode
-                lesson={lesson}
-                index={index}
-                onPress={handleLessonPress}
-              />
-              {index < journey.lessons.length - 1 && (
-                <JourneyConnector
-                  nextStatus={journey.lessons[index + 1].status}
-                  fromIndex={index}
-                />
-              )}
-            </React.Fragment>
-          ))}
-        </View>
+        {/* Path absolute coordinate workspace container */}
+        <View style={[styles.pathContainer, { height: layout.totalHeight }]}>
+          {/* 1. Background and active path lines — z-index lowest */}
+          <JourneyPath
+            svgPath={layout.svgPath}
+            svgProgressPath={layout.svgProgressPath}
+            screenWidth={windowWidth}
+            totalHeight={layout.totalHeight}
+          />
 
-        {/* Final connector to trophy */}
-        <View style={styles.trophyConnector}>
-          <Svg width={containerWidth} height={48}>
-            <Path
-              d={`M ${lastCenter} 0 C ${lastCenter} 24, ${trophyCenter} 24, ${trophyCenter} 48`}
-              fill="none"
-              stroke={allCompleted ? COLORS.primary : COLORS.border}
-              strokeWidth={4.5}
-              strokeDasharray={allCompleted ? undefined : "6, 6"}
-              strokeLinecap="round"
+          {/* 2. Lesson nodes with persistent inline labels */}
+          {layout.nodes.map((node) => (
+            <JourneyNode
+              key={node.id}
+              lesson={node.lesson!}
+              x={node.x}
+              y={node.y}
+              labelAnchor={layout.labelAnchors[node.id]}
+              isSelected={selectedLesson?.id === node.id}
+              onPress={handleLessonPress}
             />
-          </Svg>
-        </View>
+          ))}
 
-        {/* Trophy */}
-        <JourneyTrophy
-          courseTitle={journey.title}
-          isCompleted={allCompleted}
-        />
+          {/* 3. Trophy */}
+          <JourneyTrophy
+            courseTitle={journey.title}
+            isCompleted={allCompleted}
+            x={layout.trophy.x}
+            y={layout.trophy.y}
+          />
+
+          {/* 4. Detail card overlay for selected lesson */}
+          {selectedLesson && activeCardAnchor && (
+            <JourneyCard
+              key={selectedLesson.id}
+              lesson={selectedLesson}
+              anchor={activeCardAnchor}
+              onPress={handleLessonPress}
+            />
+          )}
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -154,18 +176,8 @@ const styles = StyleSheet.create({
     color: COLORS.inactive,
   },
   pathContainer: {
-    paddingHorizontal: 20,
-  },
-  trophyConnector: {
-    alignItems: "center",
-    height: 30,
-    justifyContent: "center",
-  },
-  trophyDash: {
-    width: 0,
-    height: 30,
-    borderLeftWidth: 3,
-    borderStyle: "solid",
+    position: "relative",
+    width: "100%",
   },
   errorContainer: {
     flex: 1,

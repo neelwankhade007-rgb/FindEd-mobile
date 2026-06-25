@@ -5,8 +5,8 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
@@ -21,7 +21,7 @@ import {
   ChartVisualCard,
   QuizCard,
   CompletionCard,
-} from "@/components/cards";
+} from "@/features/courses/components/cards";
 
 const CARD_TYPES = [
   { id: 1, name: "Opener" },
