@@ -1,217 +1,250 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, Pressable, StyleSheet, PanResponder } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
 
 interface SliderCalculatorCardProps {
-  title: string;
-  subtitle?: string;
-  minVal: number;
-  maxVal: number;
-  defaultVal: number;
-  step?: number;
-  unitLabel?: string;
-  calcFormula: (val: number) => {
-    outputVal: string;
-    contribution: number;
-    gains: number;
-    contributionFormatted: string;
-    gainsFormatted: string;
-  };
+  title?: string;
   onContinue: () => void;
 }
 
 export default function SliderCalculatorCard({
-  title,
-  subtitle,
-  minVal,
-  maxVal,
-  defaultVal,
-  step = 1,
-  unitLabel = "years",
-  calcFormula,
+  title = "What does this look like for you?",
   onContinue,
 }: SliderCalculatorCardProps) {
-  const [sliderVal, setSliderVal] = useState<number>(defaultVal);
-  const [trackWidth, setTrackWidth] = useState<number>(0);
+  const [monthlyVal, setMonthlyVal] = useState<number>(500);
+  const [yearsVal, setYearsVal] = useState<number>(10);
 
-  const {
-    outputVal,
-    contribution,
-    gains,
-    contributionFormatted,
-    gainsFormatted,
-  } = calcFormula(sliderVal);
+  const [trackWidth1, setTrackWidth1] = useState<number>(0);
+  const [trackWidth2, setTrackWidth2] = useState<number>(0);
 
-  const total = contribution + gains;
-  const contributionPercent = total > 0 ? (contribution / total) * 100 : 50;
-  const gainsPercent = total > 0 ? (gains / total) * 100 : 50;
+  const trackWidthRef1 = useRef(0);
+  const trackWidthRef2 = useRef(0);
 
-  const handleTouch = (event: any) => {
-    if (trackWidth <= 0) return;
-    const touchX = event.nativeEvent.locationX;
-    const percentage = Math.max(0, Math.min(1, touchX / trackWidth));
+  // Keep ref sync to avoid stale closures in PanResponder callbacks
+  trackWidthRef1.current = trackWidth1;
+  trackWidthRef2.current = trackWidth2;
+
+  // Math formula for monthly compound interest at 7% annual return
+  const r = 0.07;
+  const n = 12; // Compounded monthly
+  const totalMonths = yearsVal * n;
+  const monthlyRate = r / n;
+
+  // S = P * ((1 + r)^n - 1) / r
+  const investedValue = Math.round(
+    monthlyVal * ((Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate)
+  );
+  
+  const inSavings = monthlyVal * n * yearsVal;
+  const potentialGrowth = Math.max(0, investedValue - inSavings);
+
+  const updateValue1 = (x: number) => {
+    const width = trackWidthRef1.current;
+    if (width <= 0) return;
+    const percentage = Math.max(0, Math.min(1, x / width));
+    const minVal = 100;
+    const maxVal = 2000;
+    const step = 50;
     const rawVal = minVal + percentage * (maxVal - minVal);
     const stepVal = Math.round(rawVal / step) * step;
-    const finalVal = Math.max(minVal, Math.min(maxVal, stepVal));
-    setSliderVal(finalVal);
+    setMonthlyVal(Math.max(minVal, Math.min(maxVal, stepVal)));
   };
 
-  const activePercent = ((sliderVal - minVal) / (maxVal - minVal)) * 100;
+  const updateValue2 = (x: number) => {
+    const width = trackWidthRef2.current;
+    if (width <= 0) return;
+    const percentage = Math.max(0, Math.min(1, x / width));
+    const minVal = 1;
+    const maxVal = 40;
+    const step = 1;
+    const rawVal = minVal + percentage * (maxVal - minVal);
+    const stepVal = Math.round(rawVal / step) * step;
+    setYearsVal(Math.max(minVal, Math.min(maxVal, stepVal)));
+  };
+
+  // PanResponder for Slider 1: Monthly Investment
+  const panResponder1 = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        updateValue1(evt.nativeEvent.locationX);
+      },
+      onPanResponderMove: (evt) => {
+        updateValue1(evt.nativeEvent.locationX);
+      },
+    })
+  ).current;
+
+  // PanResponder for Slider 2: Years
+  const panResponder2 = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        updateValue2(evt.nativeEvent.locationX);
+      },
+      onPanResponderMove: (evt) => {
+        updateValue2(evt.nativeEvent.locationX);
+      },
+    })
+  ).current;
+
+  const activePercent1 = ((monthlyVal - 100) / (2000 - 100)) * 100;
+  const activePercent2 = ((yearsVal - 1) / (40 - 1)) * 100;
 
   return (
     <View style={styles.cardContainer}>
       <View>
         <Text style={styles.cardTitle}>{title}</Text>
-        {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
 
-        {/* Custom Slider */}
-        <View style={styles.sliderSection}>
-          <View style={styles.sliderHeader}>
-            <Text style={styles.sliderLabel}>Years Invested</Text>
-            <Text style={styles.sliderValueText}>
-              {sliderVal} <Text style={styles.sliderUnitText}>{unitLabel}</Text>
-            </Text>
-          </View>
-
-          <View
-            style={styles.sliderTrackWrapper}
-            onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
-          >
-            <Pressable
-              style={styles.sliderTrackPressable}
-              onTouchStart={handleTouch}
-              onTouchMove={handleTouch}
+        {/* Input Card/Box containing both sliders */}
+        <View style={styles.slidersWrapper}>
+          {/* Slider 1: Monthly Investment */}
+          <View style={styles.sliderSection}>
+            <View style={styles.sliderHeader}>
+              <Text style={styles.sliderLabel}>Monthly investment</Text>
+              <Text style={styles.sliderValueText}>
+                ${monthlyVal.toLocaleString()}
+              </Text>
+            </View>
+            <View
+              style={styles.sliderTrackWrapper}
+              onLayout={(e) => setTrackWidth1(e.nativeEvent.layout.width)}
+              {...panResponder1.panHandlers}
             >
-              {/* Back Track */}
-              <View style={styles.sliderTrackBack} />
-              {/* Active Fill Track */}
+              <View style={styles.sliderTrackBack} pointerEvents="none" />
               <View
-                style={[
-                  styles.sliderTrackFill,
-                  { width: `${activePercent}%` },
-                ]}
+                style={[styles.sliderTrackFill, { width: `${activePercent1}%` }]}
+                pointerEvents="none"
               />
-              {/* Thumb */}
               <View
-                style={[
-                  styles.sliderThumb,
-                  { left: `${activePercent}%` },
-                ]}
+                style={[styles.sliderThumb, { left: `${activePercent1}%` }]}
+                pointerEvents="none"
               />
-            </Pressable>
+            </View>
           </View>
 
-          <View style={styles.sliderLimitsRow}>
-            <Text style={styles.limitText}>{minVal}</Text>
-            <Text style={styles.limitText}>{maxVal}</Text>
-          </View>
-        </View>
-
-        {/* Live Calculation Output */}
-        <View style={styles.resultBox}>
-          <Text style={styles.resultIntroText}>₹10,000 grows to</Text>
-          <Text style={styles.resultMainValue}>{outputVal}</Text>
-          <Text style={styles.resultRateText}>
-            at <Text style={styles.resultRateHighlight}>12% CAGR</Text>
-          </Text>
-
-          {/* Breakdown progress bar */}
-          <View style={styles.breakdownBar}>
-            <View
-              style={[
-                styles.breakdownContribution,
-                { width: `${contributionPercent}%` },
-              ]}
-            />
-            <View
-              style={[
-                styles.breakdownGains,
-                { width: `${gainsPercent}%` },
-              ]}
-            />
-          </View>
-
-          {/* Legend labels */}
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, styles.dotBlue]} />
-              <Text style={styles.legendText}>
-                Invested: <Text style={styles.legendValText}>{contributionFormatted}</Text>
+          {/* Slider 2: Years */}
+          <View style={styles.sliderSection}>
+            <View style={styles.sliderHeader}>
+              <Text style={styles.sliderLabel}>Years</Text>
+              <Text style={styles.sliderValueText}>
+                {yearsVal} {yearsVal === 1 ? "Year" : "Years"}
               </Text>
             </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, styles.dotGreen]} />
-              <Text style={styles.legendText}>
-                Gains: <Text style={styles.legendValText}>{gainsFormatted}</Text>
+            <View
+              style={styles.sliderTrackWrapper}
+              onLayout={(e) => setTrackWidth2(e.nativeEvent.layout.width)}
+              {...panResponder2.panHandlers}
+            >
+              <View style={styles.sliderTrackBack} pointerEvents="none" />
+              <View
+                style={[styles.sliderTrackFill, { width: `${activePercent2}%` }]}
+                pointerEvents="none"
+              />
+              <View
+                style={[styles.sliderThumb, { left: `${activePercent2}%` }]}
+                pointerEvents="none"
+              />
+            </View>
+          </View>
+
+          {/* Summary Chips Row */}
+          <View style={styles.summaryRow}>
+            <View style={[styles.summaryCard, styles.bgLightGray]}>
+              <Text style={styles.summaryLabel}>In Savings</Text>
+              <Text style={styles.summaryValue}>
+                ${inSavings.toLocaleString()}
               </Text>
             </View>
+            <View style={[styles.summaryCard, styles.bgLightPurple]}>
+              <Text style={styles.summaryLabel}>Invested</Text>
+              <Text style={[styles.summaryValue, styles.textPurple]}>
+                ${investedValue.toLocaleString()}
+              </Text>
+            </View>
+          </View>
+
+          {/* Potential Growth Display */}
+          <View style={styles.growthPanel}>
+            <Text style={styles.growthTitle}>POTENTIAL GROWTH</Text>
+            <Text style={styles.growthValue}>
+              + ${potentialGrowth.toLocaleString()}
+            </Text>
+            <Text style={styles.growthSubtext}>
+              Based on an estimated 7% annual return.
+            </Text>
           </View>
         </View>
       </View>
 
-      <Pressable
-        onPress={onContinue}
-        style={({ pressed }) => [
-          styles.continueButton,
-          { opacity: pressed ? 0.9 : 1, marginTop: 16 },
-        ]}
-      >
-        <Text style={styles.continueText}>Continue →</Text>
-      </Pressable>
+      {/* Footer Elements */}
+      <View style={styles.footerContainer}>
+        <Pressable
+          onPress={onContinue}
+          style={({ pressed }) => [
+            styles.continueButton,
+            { opacity: pressed ? 0.9 : 1 },
+          ]}
+        >
+          <Text style={styles.continueText}>Continue to Next Step →</Text>
+        </Pressable>
+
+        {/* Tip Box */}
+        <View style={styles.tipBox}>
+          <Ionicons name="bulb-outline" size={18} color="#4B5563" style={styles.tipIcon} />
+          <Text style={styles.tipText}>
+            Compounding works best when you start early. Even $100 a month makes a massive difference over 20 years!
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: "#1F2937",
+    backgroundColor: COLORS.surface, // Light card surface
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#374151",
-    minHeight: 480,
+    borderColor: COLORS.border,
+    minHeight: 560,
     justifyContent: "space-between",
   },
   cardTitle: {
-    color: "#FFFFFF",
-    fontSize: 18,
+    color: COLORS.text,
+    fontSize: 16,
     fontWeight: "800",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    color: "#9CA3AF",
-    fontSize: 12,
-    fontWeight: "500",
     textAlign: "center",
     marginBottom: 20,
   },
+  slidersWrapper: {
+    gap: 16,
+  },
   sliderSection: {
-    marginBottom: 24,
+    marginBottom: 4,
   },
   sliderHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 6,
   },
   sliderLabel: {
-    color: "#9CA3AF",
+    color: "#4B5563",
     fontSize: 13,
     fontWeight: "700",
   },
   sliderValueText: {
-    color: "#4F46E5", // Purple highlight
-    fontSize: 18,
+    color: "#111827",
+    fontSize: 16,
     fontWeight: "800",
   },
-  sliderUnitText: {
-    color: "#9CA3AF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
   sliderTrackWrapper: {
-    height: 30,
+    height: 24,
     justifyContent: "center",
     width: "100%",
   },
@@ -224,120 +257,94 @@ const styles = StyleSheet.create({
   sliderTrackBack: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#374151",
+    backgroundColor: "#E5E7EB",
     width: "100%",
   },
   sliderTrackFill: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#C7D2FE", // Soft violet active track
     position: "absolute",
   },
   sliderThumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 4,
-    borderColor: "#4F46E5",
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#4F46E5", // Deep indigo thumb
     position: "absolute",
-    marginLeft: -10, // Centers thumb on position
+    marginLeft: -9,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 3,
     elevation: 3,
   },
-  sliderLimitsRow: {
+  summaryRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 4,
+    gap: 12,
+    marginTop: 12,
   },
-  limitText: {
-    color: "#6B7280",
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  resultBox: {
-    backgroundColor: "#111827",
-    borderRadius: 16,
+  summaryCard: {
+    flex: 1,
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: "#374151",
-    padding: 18,
-    alignItems: "center",
+    borderColor: "#E5E7EB",
   },
-  resultIntroText: {
-    color: "#9CA3AF",
-    fontSize: 13,
-    fontWeight: "600",
+  bgLightGray: {
+    backgroundColor: "#F9FAFB",
+  },
+  bgLightPurple: {
+    backgroundColor: "#EEF2FF",
+    borderColor: "#C7D2FE",
+  },
+  summaryLabel: {
+    color: "#6B7280",
+    fontSize: 10,
+    fontWeight: "700",
     marginBottom: 4,
   },
-  resultMainValue: {
-    color: "#10B981", // Emerald green
-    fontSize: 26,
+  summaryValue: {
+    color: "#111827",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  textPurple: {
+    color: "#4F46E5",
+  },
+  growthPanel: {
+    backgroundColor: "#ECFDF5", // Soft green background
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  growthTitle: {
+    color: "#059669",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  growthValue: {
+    color: "#059669",
+    fontSize: 22,
     fontWeight: "900",
     marginBottom: 4,
   },
-  resultRateText: {
-    color: "#6B7280",
-    fontSize: 11,
-    fontWeight: "600",
-    marginBottom: 16,
-  },
-  resultRateHighlight: {
-    color: "#9CA3AF",
-    fontWeight: "750",
-  },
-  breakdownBar: {
-    flexDirection: "row",
-    height: 8,
-    borderRadius: 4,
-    width: "100%",
-    overflow: "hidden",
-    backgroundColor: "#374151",
-    marginBottom: 14,
-  },
-  breakdownContribution: {
-    backgroundColor: "#3B82F6", // Invested blue
-    height: "100%",
-  },
-  breakdownGains: {
-    backgroundColor: "#10B981", // Gains green
-    height: "100%",
-  },
-  legendRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    paddingHorizontal: 4,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  dotBlue: {
-    backgroundColor: "#3B82F6",
-  },
-  dotGreen: {
-    backgroundColor: "#10B981",
-  },
-  legendText: {
-    color: "#9CA3AF",
+  growthSubtext: {
+    color: "#374151",
     fontSize: 11,
     fontWeight: "600",
   },
-  legendValText: {
-    color: "#F3F4F6",
-    fontWeight: "750",
+  footerContainer: {
+    gap: 16,
+    marginTop: 20,
   },
   continueButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: COLORS.accent, // Yellow accent button color from COLORS
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderRadius: 14,
@@ -347,6 +354,25 @@ const styles = StyleSheet.create({
   continueText: {
     color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "750",
+    fontWeight: "700",
+  },
+  tipBox: {
+    flexDirection: "row",
+    backgroundColor: "#F3F4F6",
+    borderRadius: 12,
+    padding: 12,
+    gap: 10,
+    alignItems: "flex-start",
+  },
+  tipIcon: {
+    marginTop: 1,
+  },
+  tipText: {
+    flex: 1,
+    color: "#4B5563",
+    fontSize: 11,
+    fontStyle: "italic",
+    lineHeight: 16,
+    fontWeight: "500",
   },
 });

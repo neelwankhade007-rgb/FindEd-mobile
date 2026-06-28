@@ -109,6 +109,6 @@ const styles = StyleSheet.create({
   actionText: {
     color: COLORS.primary,
     fontSize: 12,
-    fontWeight: "750",
+    fontWeight: "700",
   },
 });

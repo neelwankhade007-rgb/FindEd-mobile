@@ -68,7 +68,7 @@ const JourneyCard = React.memo(function JourneyCard({
         <View style={styles.connectorDot} />
       </View>
 
-      <View style={styles.cardContent}>
+      <Pressable onPress={() => {}} style={styles.cardContent}>
         {/* Title Row with Icon */}
         <View style={styles.headerRow}>
           <View style={[styles.iconContainer, { backgroundColor: ctaColor }]}>
@@ -91,7 +91,7 @@ const JourneyCard = React.memo(function JourneyCard({
         </View>
 
         {/* Description */}
-        <Text style={styles.descriptionText} numberOfLines={2}>
+        <Text style={styles.descriptionText} numberOfLines={3}>
           {description}
         </Text>
 
@@ -106,7 +106,7 @@ const JourneyCard = React.memo(function JourneyCard({
         >
           <Text style={styles.ctaButtonText}>{ctaText}</Text>
         </Pressable>
-      </View>
+      </Pressable>
     </Animated.View>
   );
 });

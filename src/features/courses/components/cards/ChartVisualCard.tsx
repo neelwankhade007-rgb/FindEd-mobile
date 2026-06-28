@@ -1,52 +1,34 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet, Dimensions } from "react-native";
-import Svg, { Path, Line, Circle, Text as SvgText } from "react-native-svg";
-
-export interface ChartDataset {
-  label: string;
-  color: string;
-  data: number[]; // numerical data points
-  isDashed?: boolean;
-}
+import Svg, { Path, Line, Circle } from "react-native-svg";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "@/constants/colors";
 
 interface ChartVisualCardProps {
-  title: string;
+  title?: string;
   subtitle?: string;
-  years: string[]; // X-axis values, e.g. ["'99", "'04", "'09", "'14", "'19", "'24"]
-  datasets: ChartDataset[];
-  statChips: Array<{
-    value: string;
-    label: string;
-    color: string;
-    isHighlighted?: boolean;
-  }>;
   onContinue: () => void;
 }
 
 export default function ChartVisualCard({
-  title,
-  subtitle = "Illustrative compound growth. Not actual index values.",
-  years,
-  datasets,
-  statChips,
+  title = "Stock Market Trends",
+  subtitle = "Historical performance of the Index",
   onContinue,
 }: ChartVisualCardProps) {
-  // Chart dimensions inside card
-  const chartHeight = 160;
-  const paddingLeft = 32;
-  const paddingRight = 16;
-  const paddingTop = 12;
-  const paddingBottom = 20;
-
   const screenWidth = Dimensions.get("window").width;
-  // Available width is screen - cardPadding(40) - cardInnerPadding(36)
-  const chartWidth = Math.max(260, screenWidth - 76);
+  // Available width is screen - cardPadding(40) - cardInnerPadding(40)
+  const chartWidth = Math.max(260, screenWidth - 80);
+  const chartHeight = 120;
+  const paddingLeft = 16;
+  const paddingRight = 16;
+  const paddingTop = 10;
+  const paddingBottom = 16;
 
-  // Math to map values to coordinates
-  const allValues = datasets.flatMap((d) => d.data);
-  const minVal = Math.min(...allValues, 0);
-  const maxVal = Math.max(...allValues, 1);
-  const valRange = maxVal - minVal;
+  // Mock points for Stock Market Trends chart
+  // Line 1: Solid navy wavy curve
+  const wavyPoints = [20, 30, 15, 60, 40, 85];
+  // Line 2: Light green straight line
+  const straightPoints = [15, 30, 45, 60, 75, 90];
 
   const getSvgX = (index: number, total: number) => {
     const usableWidth = chartWidth - paddingLeft - paddingRight;
@@ -55,217 +37,371 @@ export default function ChartVisualCard({
 
   const getSvgY = (value: number) => {
     const usableHeight = chartHeight - paddingTop - paddingBottom;
-    const ratio = (value - minVal) / valRange;
-    // SVG coordinate Y increases downwards, so we subtract from bottom
+    const ratio = value / 100;
     return chartHeight - paddingBottom - ratio * usableHeight;
+  };
+
+  const drawPath = (points: number[]) => {
+    if (points.length === 0) return "";
+    let path = `M ${getSvgX(0, points.length)},${getSvgY(points[0])}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const x0 = getSvgX(i, points.length);
+      const y0 = getSvgY(points[i]);
+      const x1 = getSvgX(i + 1, points.length);
+      const y1 = getSvgY(points[i + 1]);
+      
+      // Calculate control points for cubic Bezier curve to make it smooth and curved
+      const cpX1 = x0 + (x1 - x0) / 3;
+      const cpY1 = y0;
+      const cpX2 = x0 + 2 * (x1 - x0) / 3;
+      const cpY2 = y1;
+      
+      path += ` C ${cpX1},${cpY1} ${cpX2},${cpY2} ${x1},${y1}`;
+    }
+    return path;
   };
 
   return (
     <View style={styles.cardContainer}>
       <View>
-        <Text style={styles.cardTitle}>{title}</Text>
+        {/* Header Row */}
+        <View style={styles.headerRow}>
+          <View style={styles.titleInfo}>
+            <Text style={styles.cardTitle}>{title}</Text>
+            <Text style={styles.cardSubtitle}>{subtitle}</Text>
+          </View>
+          <View style={styles.trendIconWrapper}>
+            <Ionicons name="trending-up" size={16} color="#6366F1" />
+          </View>
+        </View>
 
-        {/* SVG Drawing Canvas */}
-        <View style={styles.chartWrapper}>
-          <Svg width={chartWidth} height={chartHeight}>
-            {/* Gridlines (Horizontal) */}
-            {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
-              const val = minVal + ratio * valRange;
-              const y = getSvgY(val);
-              return (
-                <React.Fragment key={idx}>
+        {/* Side-by-Side Return and Volatility Chips */}
+        <View style={styles.chipsRow}>
+          <View style={styles.statChip}>
+            <Text style={styles.statChipLabel}>Total Return</Text>
+            <Text style={styles.statChipValueGreen}>+124.5%</Text>
+          </View>
+          <View style={styles.statChip}>
+            <Text style={styles.statChipLabel}>Annual Volatility</Text>
+            <Text style={styles.statChipValue}>12.4%</Text>
+          </View>
+        </View>
+
+        {/* Line Chart Panel */}
+        <View style={styles.chartPanel}>
+          <Text style={styles.chartTitleLabel}>PERFORMANCE INDEX (10Y)</Text>
+          
+          <View style={styles.chartWrapper}>
+            <Svg width={chartWidth} height={chartHeight}>
+              {/* Horizontal dotted gridlines */}
+              {[0, 0.33, 0.66, 1].map((ratio, idx) => {
+                const y = getSvgY(ratio * 100);
+                return (
                   <Line
+                    key={idx}
                     x1={paddingLeft}
                     y1={y}
                     x2={chartWidth - paddingRight}
                     y2={y}
-                    stroke="rgba(255, 255, 255, 0.08)"
+                    stroke="rgba(0, 0, 0, 0.04)"
                     strokeWidth={1}
+                    strokeDasharray="3,3"
                   />
-                  <SvgText
-                    x={6}
-                    y={y + 4}
-                    fill="#6B7280"
-                    fontSize="9"
-                    fontWeight="700"
-                  >
-                    {val >= 100000
-                      ? `₹${(val / 100000).toFixed(0)}L`
-                      : `₹${(val / 1000).toFixed(0)}k`}
-                  </SvgText>
-                </React.Fragment>
-              );
-            })}
+                );
+              })}
 
-            {/* X Axis labels */}
-            {years.map((year, idx) => {
-              const x = getSvgX(idx, years.length);
-              return (
-                <SvgText
-                  key={idx}
-                  x={x}
-                  y={chartHeight - 4}
-                  fill="#6B7280"
-                  fontSize="9"
-                  fontWeight="700"
-                  textAnchor="middle"
-                >
-                  {year}
-                </SvgText>
-              );
-            })}
+              {/* Straight line (Teal) */}
+              <Path
+                d={drawPath(straightPoints)}
+                fill="none"
+                stroke="#10B981"
+                strokeWidth={2}
+              />
 
-            {/* Datasets paths */}
-            {datasets.map((dataset, dIdx) => {
-              const points = dataset.data.map((val, pIdx) => {
-                const x = getSvgX(pIdx, dataset.data.length);
-                const y = getSvgY(val);
-                return `${x},${y}`;
-              });
+              {/* Wavy line (Navy/Indigo) */}
+              <Path
+                d={drawPath(wavyPoints)}
+                fill="none"
+                stroke="#1E1B4B"
+                strokeWidth={3}
+              />
 
-              const pathD = `M ${points.join(" L ")}`;
+              {/* Endpoint dots */}
+              <Circle
+                cx={getSvgX(straightPoints.length - 1, straightPoints.length)}
+                cy={getSvgY(straightPoints[straightPoints.length - 1])}
+                r={4}
+                fill="#10B981"
+              />
+              <Circle
+                cx={getSvgX(wavyPoints.length - 1, wavyPoints.length)}
+                cy={getSvgY(wavyPoints[wavyPoints.length - 1])}
+                r={4}
+                fill="#6366F1"
+              />
+            </Svg>
+          </View>
 
-              return (
-                <React.Fragment key={dIdx}>
-                  <Path
-                    d={pathD}
-                    fill="none"
-                    stroke={dataset.color}
-                    strokeWidth={2.5}
-                    strokeDasharray={dataset.isDashed ? "4,4" : undefined}
-                  />
-
-                  {/* Draw points circles */}
-                  {dataset.data.map((val, pIdx) => (
-                    <Circle
-                      key={pIdx}
-                      cx={getSvgX(pIdx, dataset.data.length)}
-                      cy={getSvgY(val)}
-                      r={3.5}
-                      fill={dataset.color}
-                      stroke="#1F2937"
-                      strokeWidth={1.5}
-                    />
-                  ))}
-                </React.Fragment>
-              );
-            })}
-          </Svg>
+          {/* X Axis years */}
+          <View style={styles.xAxisRow}>
+            <Text style={styles.xAxisText}>2014</Text>
+            <Text style={styles.xAxisText}>2019</Text>
+            <Text style={styles.xAxisText}>2024</Text>
+          </View>
         </View>
 
-        <Text style={styles.chartSubtitle}>{subtitle}</Text>
-
-        {/* Dynamic Stat Chips below */}
-        <View style={styles.statChipsRow}>
-          {statChips.map((chip, idx) => (
-            <View
-              key={idx}
-              style={[
-                styles.statChip,
-                chip.isHighlighted ? styles.statChipHighlighted : null,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.statChipValue,
-                  chip.isHighlighted ? styles.textGreen : { color: chip.color },
-                ]}
-              >
-                {chip.value}
-              </Text>
-              <Text style={styles.statChipLabel} numberOfLines={1}>{chip.label}</Text>
+        {/* Sector Growth Comparison bars */}
+        <View style={styles.sectorSection}>
+          <Text style={styles.sectorSectionHeader}>Sector Growth Comparison</Text>
+          
+          {/* Tech Bar */}
+          <View style={styles.sectorBarRow}>
+            <Text style={styles.sectorLabel}>Tech</Text>
+            <View style={styles.barProgressBackground}>
+              <View style={[styles.barProgressFill, { width: "85%", backgroundColor: "#8B5CF6" }]} />
             </View>
-          ))}
+            <Text style={styles.sectorValue}>+85%</Text>
+          </View>
+
+          {/* FMCG Bar */}
+          <View style={styles.sectorBarRow}>
+            <Text style={styles.sectorLabel}>FMCG</Text>
+            <View style={styles.barProgressBackground}>
+              <View style={[styles.barProgressFill, { width: "45%", backgroundColor: "#10B981" }]} />
+            </View>
+            <Text style={styles.sectorValue}>+45%</Text>
+          </View>
+
+          {/* Pharma Bar */}
+          <View style={styles.sectorBarRow}>
+            <Text style={styles.sectorLabel}>Pharma</Text>
+            <View style={styles.barProgressBackground}>
+              <View style={[styles.barProgressFill, { width: "62%", backgroundColor: COLORS.accent }]} />
+            </View>
+            <Text style={styles.sectorValue}>+62%</Text>
+          </View>
+        </View>
+
+        {/* Notice Info Box */}
+        <View style={styles.noticeBox}>
+          <Ionicons name="bulb" size={18} color="#6366F1" style={{ marginTop: 2 }} />
+          <Text style={styles.noticeText}>
+            Notice how the Tech sector shows exponential growth compared to others over the last decade. This is often driven by digital transformation.
+          </Text>
         </View>
       </View>
 
-      <Pressable
-        onPress={onContinue}
-        style={({ pressed }) => [
-          styles.continueButton,
-          { opacity: pressed ? 0.9 : 1, marginTop: 16 },
-        ]}
-      >
-        <Text style={styles.continueText}>Continue →</Text>
-      </Pressable>
+      {/* Practice Box Callout */}
+      <View style={styles.practiceContainer}>
+        <Text style={styles.practiceTitle}>Ready to practice?</Text>
+        <Text style={styles.practiceSubtitle}>
+          Apply what you've learned to a real-world scenario.
+        </Text>
+        <Pressable
+          onPress={onContinue}
+          style={({ pressed }) => [
+            styles.continueButton,
+            { opacity: pressed ? 0.95 : 1, marginTop: 12 },
+          ]}
+        >
+          <Text style={styles.continueText}>Continue Learning ➔</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: "#1F2937",
+    backgroundColor: COLORS.surface, // Solid white card surface
     borderRadius: 24,
-    padding: 18,
+    padding: 20,
     borderWidth: 1,
-    borderColor: "#374151",
-    minHeight: 480,
+    borderColor: COLORS.border,
+    minHeight: 560,
     justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  titleInfo: {
+    gap: 2,
   },
   cardTitle: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    color: "#1E1B4B",
+    fontSize: 18,
     fontWeight: "800",
-    textAlign: "center",
+  },
+  cardSubtitle: {
+    color: "#6B7280",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  trendIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#EEF2FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chipsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 20,
+  },
+  statChip: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  statChipLabel: {
+    color: "#6B7280",
+    fontSize: 10,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  statChipValue: {
+    color: "#111827",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  statChipValueGreen: {
+    color: "#10B981",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  chartPanel: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: 12,
     marginBottom: 16,
+  },
+  chartTitleLabel: {
+    color: "#9CA3AF",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    marginBottom: 8,
+    paddingHorizontal: 4,
   },
   chartWrapper: {
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
-    width: "100%",
   },
-  chartSubtitle: {
-    color: "#6B7280",
+  xAxisRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginTop: 6,
+  },
+  xAxisText: {
+    color: "#9CA3AF",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  sectorSection: {
+    gap: 10,
+    marginBottom: 16,
+  },
+  sectorSectionHeader: {
+    color: "#1E1B4B",
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  sectorBarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  sectorLabel: {
+    width: 60,
+    color: "#4B5563",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  barProgressBackground: {
+    flex: 1,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#E5E7EB",
+    overflow: "hidden",
+  },
+  barProgressFill: {
+    height: "100%",
+    borderRadius: 6,
+  },
+  sectorValue: {
+    width: 44,
+    textAlign: "right",
+    color: "#111827",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  noticeBox: {
+    flexDirection: "row",
+    backgroundColor: "#EEF2FF", // Soft purple tint
+    borderRadius: 14,
+    padding: 12,
+    gap: 10,
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  noticeText: {
+    flex: 1,
+    color: "#4F46E5",
     fontSize: 11,
+    lineHeight: 16,
+    fontWeight: "600",
+  },
+  practiceContainer: {
+    backgroundColor: "#F9FAFB",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 16,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  practiceTitle: {
+    color: "#1E1B4B",
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  practiceSubtitle: {
+    color: "#6B7280",
+    fontSize: 12,
     fontWeight: "500",
     textAlign: "center",
-    marginBottom: 20,
-  },
-  statChipsRow: {
-    flexDirection: "row",
-    gap: 8,
-    width: "100%",
-  },
-  statChip: {
-    flex: 1,
-    backgroundColor: "#111827",
-    borderWidth: 1,
-    borderColor: "#374151",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    alignItems: "center",
-  },
-  statChipHighlighted: {
-    borderColor: "#10B981", // Highlight border
-    backgroundColor: "rgba(16, 185, 129, 0.04)",
-  },
-  statChipValue: {
-    fontSize: 15,
-    fontWeight: "900",
-  },
-  textGreen: {
-    color: "#10B981",
-  },
-  statChipLabel: {
-    color: "#9CA3AF",
-    fontSize: 9,
-    fontWeight: "750",
-    marginTop: 2,
-    textAlign: "center",
+    marginBottom: 8,
   },
   continueButton: {
-    backgroundColor: "#4F46E5",
-    paddingHorizontal: 20,
+    backgroundColor: COLORS.accent, // Yellow accent button color from COLORS
+    paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 14,
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "row",
+    gap: 4,
   },
   continueText: {
     color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "750",
+    fontWeight: "700",
   },
 });

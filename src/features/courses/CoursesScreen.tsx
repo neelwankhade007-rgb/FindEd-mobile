@@ -12,7 +12,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
 import { COURSE_CATEGORIES, LIBRARY_COURSES } from "./courseData";
 
-import CoursesHeader from "./components/CoursesHeader";
 import SearchBar from "./components/SearchBar";
 import CourseCategoryChips from "./components/CourseCategoryChips";
 import CourseLibraryCard from "./components/CourseLibraryCard";
@@ -51,7 +50,6 @@ export default function CoursesScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <CoursesHeader />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -117,6 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   scrollContent: {
+    paddingTop: 16,
     paddingBottom: 40,
   },
   section: {

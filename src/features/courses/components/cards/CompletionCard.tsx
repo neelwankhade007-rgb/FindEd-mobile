@@ -8,6 +8,7 @@ import Animated, {
   withRepeat,
   Easing,
 } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
 
 export interface CompletionCardProps {
@@ -61,6 +62,9 @@ export default function CompletionCard({
 
   return (
     <View style={styles.cardContainer}>
+      {/* Top Border Accent Line */}
+      <View style={styles.topAccentBar} />
+
       {/* Confetti overlay */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         {particles.map((p) => (
@@ -69,38 +73,63 @@ export default function CompletionCard({
       </View>
 
       <View style={styles.scrollContent}>
-        {/* Celebration Header */}
+        {/* Celebration Trophy Header */}
         <View style={styles.headerSection}>
-          <View style={styles.badgeWrapper}>
-            <Text style={styles.badgeEmoji}>{badge}</Text>
+          <View style={styles.trophyOuterCircle}>
+            <View style={styles.trophyInnerCircle}>
+              <Ionicons name="trophy" size={36} color="#FFFFFF" />
+            </View>
+            {/* Green overlapping check circle */}
+            <View style={styles.checkBadge}>
+              <Ionicons name="checkmark-sharp" size={12} color="#FFFFFF" />
+            </View>
           </View>
           <Text style={styles.titleText}>{title}</Text>
           <Text style={styles.subtitleText}>{subtitle}</Text>
         </View>
 
-        {/* Stars Earned */}
-        <View style={styles.starsBox}>
-          <Text style={styles.starsCount}>{starsEarned}</Text>
-          <Text style={styles.starsLabel}>FinStars Earned ⭐</Text>
+        {/* Side-by-side stats chips */}
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <View style={styles.statHeadingRow}>
+              <Ionicons name="star" size={16} color="#FBBF24" />
+              <Text style={styles.statValue}>{starsEarned}</Text>
+            </View>
+            <Text style={styles.statLabel}>FinStars Earned</Text>
+          </View>
+          <View style={styles.statCard}>
+            <View style={styles.statHeadingRow}>
+              <Ionicons name="time" size={16} color="#8B5CF6" />
+              <Text style={styles.statValue}>15m</Text>
+            </View>
+            <Text style={styles.statLabel}>Time Spent</Text>
+          </View>
         </View>
 
         {/* Learnings checklist */}
         <View style={styles.learningsBox}>
-          <Text style={styles.learningsTitle}>WHAT YOU LEARNED</Text>
+          <Text style={styles.learningsTitle}>KEY LEARNINGS</Text>
           {learnings.map((item, idx) => (
             <View key={idx} style={styles.learningItem}>
-              <Text style={styles.checkIcon}>✓</Text>
+              <Ionicons name="checkmark-circle" size={18} color="#10B981" style={styles.checkIcon} />
               <Text style={styles.learningText}>{item}</Text>
             </View>
           ))}
         </View>
 
-        {/* Next Module Teaser */}
-        <View style={styles.nextTeaserCard}>
-          <Text style={styles.nextTeaserLabel}>UP NEXT</Text>
-          <Text style={styles.nextTeaserTitle}>{nextModuleTitle}</Text>
-          <Text style={styles.nextTeaserDesc}>{nextModuleDesc}</Text>
-        </View>
+        {/* Next Module Teaser Card */}
+        <Pressable onPress={onNextModule} style={styles.nextTeaserCard}>
+          <View style={styles.nextTeaserLeft}>
+            <View style={styles.teaserIconWrapper}>
+              <Ionicons name="library" size={20} color="#FFFFFF" />
+            </View>
+            <View style={styles.nextTeaserInfo}>
+              <Text style={styles.nextTeaserLabel}>UP NEXT</Text>
+              <Text style={styles.nextTeaserTitle} numberOfLines={1}>{nextModuleTitle}</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+        </Pressable>
       </View>
 
       {/* Action buttons */}
@@ -109,20 +138,20 @@ export default function CompletionCard({
           onPress={onNextModule}
           style={({ pressed }) => [
             styles.primaryButton,
-            { opacity: pressed ? 0.9 : 1 },
+            { opacity: pressed ? 0.95 : 1 },
           ]}
         >
-          <Text style={styles.primaryText}>Start Next Module →</Text>
+          <Text style={styles.primaryText}>Continue to Next Module ➔</Text>
         </Pressable>
         
         <Pressable
           onPress={onReplay}
           style={({ pressed }) => [
             styles.secondaryButton,
-            { opacity: pressed ? 0.9 : 1 },
+            { opacity: pressed ? 0.8 : 1 },
           ]}
         >
-          <Text style={styles.secondaryText}>↩ Replay</Text>
+          <Text style={styles.secondaryText}>Back to Dashboard</Text>
         </Pressable>
       </View>
     </View>
@@ -206,166 +235,209 @@ function ConfettiParticle({ particle }: { particle: Particle }) {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: "#1F2937",
+    backgroundColor: COLORS.surface, // Solid white card surface
     borderRadius: 24,
-    padding: 18,
+    padding: 24,
     borderWidth: 1,
-    borderColor: "#374151",
+    borderColor: COLORS.border,
     minHeight: 520,
     justifyContent: "space-between",
     position: "relative",
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  topAccentBar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: "#FBBF24", // Top horizontal highlight bar
   },
   scrollContent: {
     flex: 1,
   },
   headerSection: {
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  badgeWrapper: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "rgba(79, 70, 229, 0.15)", // Indigo glow tint
+  trophyOuterCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(251, 191, 36, 0.15)", // Gold/Yellow translucent outer halo
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
-    borderWidth: 1.5,
-    borderColor: "rgba(79, 70, 229, 0.3)",
-    shadowColor: "#4F46E5",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
+    marginBottom: 16,
+    position: "relative",
   },
-  badgeEmoji: {
-    fontSize: 32,
+  trophyInnerCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FBBF24", // Vibrant gold circle
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkBadge: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#10B981", // Green check badge
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
   titleText: {
-    color: "#FFFFFF",
-    fontSize: 18,
+    color: "#111827",
+    fontSize: 16,
     fontWeight: "800",
     textAlign: "center",
-    marginBottom: 6,
-    lineHeight: 22,
+    marginBottom: 8,
+    lineHeight: 20,
   },
   subtitleText: {
-    color: "#9CA3AF",
-    fontSize: 12,
+    color: "#6B7280",
+    fontSize: 13,
     fontWeight: "500",
     textAlign: "center",
-    lineHeight: 16,
-    paddingHorizontal: 8,
+    lineHeight: 18,
+    paddingHorizontal: 12,
   },
-  starsBox: {
-    backgroundColor: "rgba(16, 185, 129, 0.08)", // Emerald backdrop
-    borderWidth: 1,
-    borderColor: "rgba(16, 185, 129, 0.2)",
-    borderRadius: 16,
-    paddingVertical: 12,
+  statsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 24,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+    borderRadius: 14,
+    padding: 12,
     alignItems: "center",
-    marginBottom: 18,
-    marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
-  starsCount: {
-    color: "#10B981", // green highlight
-    fontSize: 32,
-    fontWeight: "900",
+  statHeadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 2,
   },
-  starsLabel: {
-    color: "#9CA3AF",
-    fontSize: 11,
-    fontWeight: "750",
-    marginTop: 2,
+  statValue: {
+    color: "#111827",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  statLabel: {
+    color: "#6B7280",
+    fontSize: 10,
+    fontWeight: "700",
   },
   learningsBox: {
-    marginBottom: 20,
-    paddingHorizontal: 6,
+    marginBottom: 24,
+    paddingHorizontal: 4,
   },
   learningsTitle: {
-    color: "#9CA3AF",
+    color: "#6B7280",
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.5,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   learningItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: 10,
+    gap: 10,
   },
   checkIcon: {
-    color: "#10B981",
-    fontSize: 14,
-    fontWeight: "900",
-    marginTop: -1,
+    marginTop: 1,
   },
   learningText: {
-    color: "#D1D5DB",
-    fontSize: 12.5,
-    fontWeight: "550",
-    lineHeight: 17,
+    color: "#4B5563",
+    fontSize: 13,
+    fontWeight: "600",
+    lineHeight: 18,
     flex: 1,
   },
   nextTeaserCard: {
-    backgroundColor: "#111827",
+    backgroundColor: "#F3F4F6", // Light gray UP NEXT container
     borderRadius: 16,
     padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "#374151",
-    marginBottom: 10,
+    borderColor: "#E5E7EB",
+    marginBottom: 8,
+  },
+  nextTeaserLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  teaserIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#4F46E5", // Purple card background
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nextTeaserInfo: {
+    flex: 1,
+    gap: 2,
   },
   nextTeaserLabel: {
-    color: "#3B82F6", // Blue label
-    fontSize: 8.5,
+    color: "#4F46E5", // Purple UP NEXT label
+    fontSize: 9,
     fontWeight: "800",
     letterSpacing: 1,
-    marginBottom: 4,
   },
   nextTeaserTitle: {
-    color: "#FFFFFF",
-    fontSize: 13.5,
-    fontWeight: "850",
-    marginBottom: 3,
-  },
-  nextTeaserDesc: {
-    color: "#9CA3AF",
-    fontSize: 11.5,
-    fontWeight: "500",
-    lineHeight: 15,
+    color: "#111827",
+    fontSize: 13,
+    fontWeight: "800",
   },
   buttonRow: {
-    gap: 10,
-    marginTop: 8,
+    gap: 12,
+    marginTop: 12,
   },
   primaryButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: COLORS.primary, // Dark eggplant purple
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "row",
+    gap: 4,
   },
   primaryText: {
     color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "750",
+    fontWeight: "700",
   },
   secondaryButton: {
     backgroundColor: "transparent",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#374151",
     alignItems: "center",
     justifyContent: "center",
   },
   secondaryText: {
-    color: "#9CA3AF",
+    color: "#6B7280",
     fontSize: 14,
-    fontWeight: "650",
+    fontWeight: "700",
   },
 });

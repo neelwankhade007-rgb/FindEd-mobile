@@ -7,6 +7,7 @@ import Animated, {
   withDelay,
   withTiming,
 } from "react-native-reanimated";
+import { COLORS } from "@/constants/colors";
 
 interface CinematicOpenerCardProps {
   line1: string;
@@ -98,7 +99,7 @@ export default function CinematicOpenerCard({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={["#0B0F19", "#1E1B4B", "#0B0F19"]}
+        colors={[COLORS.surface, "#EEF2FF", COLORS.surface]}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -111,7 +112,7 @@ export default function CinematicOpenerCard({
 
       <View style={styles.content}>
         <View style={styles.linesContainer}>
-          <Animated.Text style={[styles.line, styles.lineWhite, animatedStyle1]}>
+          <Animated.Text style={[styles.line, styles.lineText, animatedStyle1]}>
             {line1}
           </Animated.Text>
           <Animated.Text style={[styles.line, styles.lineAmber, animatedStyle2]}>
@@ -157,6 +158,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 24,
     position: "relative",
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   glowTopRight: {
     position: "absolute",
@@ -165,8 +168,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: "rgba(99, 102, 241, 0.15)", // Indigo glow
-    blurRadius: 50,
+    backgroundColor: "rgba(79, 70, 229, 0.08)", // Indigo glow
   },
   glowBottomLeft: {
     position: "absolute",
@@ -175,8 +177,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: "rgba(16, 185, 129, 0.1)", // Emerald glow
-    blurRadius: 50,
+    backgroundColor: "rgba(245, 158, 11, 0.06)", // Accent glow
   },
   content: {
     alignItems: "center",
@@ -194,51 +195,51 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: -0.5,
   },
-  lineWhite: {
-    color: "#FFFFFF",
+  lineText: {
+    color: COLORS.text,
   },
   lineAmber: {
-    color: "#FBBF24", // Amber
+    color: COLORS.accent, // Amber/Accent
   },
   lineAccent: {
-    color: "#10B981", // Emerald Accent
+    color: COLORS.primary, // Primary Indigo Accent
   },
   tagline: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#9CA3AF",
+    color: COLORS.textSecondary,
     textAlign: "center",
     lineHeight: 20,
     marginBottom: 40,
     maxWidth: "90%",
   },
   ctaButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#4F46E5",
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 4,
     marginBottom: 16,
   },
   ctaText: {
     color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "750",
+    fontWeight: "700",
   },
   teaserText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#6B7280",
+    color: COLORS.textSecondary,
     textAlign: "center",
   },
   teaserAccent: {
-    color: "#10B981",
+    color: COLORS.primary,
     fontWeight: "700",
   },
 });

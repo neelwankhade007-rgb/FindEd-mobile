@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo } from "react";
-import { ScrollView, View, Text, StyleSheet, BackHandler, useWindowDimensions } from "react-native";
+import { ScrollView, View, Text, StyleSheet, BackHandler, useWindowDimensions, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -103,7 +103,10 @@ export default function CourseJourneyScreen() {
         </View>
 
         {/* Path absolute coordinate workspace container */}
-        <View style={[styles.pathContainer, { height: layout.totalHeight }]}>
+        <Pressable
+          onPress={() => setSelectedLesson(null)}
+          style={[styles.pathContainer, { height: layout.totalHeight }]}
+        >
           {/* 1. Background and active path lines — z-index lowest */}
           <JourneyPath
             svgPath={layout.svgPath}
@@ -143,7 +146,7 @@ export default function CourseJourneyScreen() {
               onPress={handleLessonPress}
             />
           )}
-        </View>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

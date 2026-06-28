@@ -5,6 +5,8 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "@/constants/colors";
 
 export interface QuizOption {
   id: string;
@@ -57,6 +59,7 @@ export default function QuizCard({
       return {
         card: styles.optionNormal,
         badge: styles.badgeNormal,
+        badgeText: styles.badgeTextNormal,
         text: styles.textNormal,
       };
     }
@@ -65,6 +68,7 @@ export default function QuizCard({
       return {
         card: styles.optionCorrect,
         badge: styles.badgeCorrect,
+        badgeText: styles.badgeTextCorrect,
         text: styles.textCorrect,
       };
     }
@@ -73,6 +77,7 @@ export default function QuizCard({
       return {
         card: styles.optionWrong,
         badge: styles.badgeWrong,
+        badgeText: styles.badgeTextWrong,
         text: styles.textWrong,
       };
     }
@@ -80,6 +85,7 @@ export default function QuizCard({
     return {
       card: [styles.optionNormal, { opacity: 0.5 }],
       badge: styles.badgeNormal,
+      badgeText: styles.badgeTextNormal,
       text: styles.textNormal,
     };
   };
@@ -89,13 +95,16 @@ export default function QuizCard({
   return (
     <View style={styles.cardContainer}>
       <View>
-        {/* Question Area */}
-        <View style={styles.questionBox}>
-          <View style={styles.questionIndicator} />
-          <Text style={styles.questionText}>{question}</Text>
+        {/* Concept Check Badge */}
+        <View style={styles.conceptCheckBadge}>
+          <Ionicons name="bulb-outline" size={14} color="#6366F1" />
+          <Text style={styles.conceptCheckText}>Concept Check</Text>
         </View>
 
-        {/* Options grid */}
+        {/* Question Header */}
+        <Text style={styles.questionText}>{question}</Text>
+
+        {/* Options List */}
         <View style={styles.optionsList}>
           {options.map((opt) => {
             const stylesObj = getOptionStyle(opt);
@@ -111,7 +120,7 @@ export default function QuizCard({
                 ]}
               >
                 <View style={[styles.letterBadge, stylesObj.badge]}>
-                  <Text style={styles.letterText}>{opt.letter}</Text>
+                  <Text style={[styles.letterText, stylesObj.badgeText]}>{opt.letter}</Text>
                 </View>
                 <Text style={[styles.optionText, stylesObj.text]}>
                   {opt.text}
@@ -163,72 +172,82 @@ export default function QuizCard({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: "#1F2937",
+    backgroundColor: COLORS.surface, // Solid white card surface
     borderRadius: 24,
-    padding: 20,
+    padding: 24,
     borderWidth: 1,
-    borderColor: "#374151",
+    borderColor: COLORS.border,
     minHeight: 500,
     justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  questionBox: {
+  conceptCheckBadge: {
     flexDirection: "row",
-    backgroundColor: "#111827",
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#374151",
-    marginBottom: 20,
     alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "#EEF2FF", // Soft indigo background
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 6,
+    marginBottom: 16,
   },
-  questionIndicator: {
-    width: 4,
-    height: "100%",
-    backgroundColor: "#3B82F6", // Blue indicator
-    borderRadius: 2,
-    marginRight: 12,
-    alignSelf: "stretch",
+  conceptCheckText: {
+    color: "#6366F1", // Indigo text
+    fontSize: 12,
+    fontWeight: "700",
   },
   questionText: {
-    flex: 1,
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "750",
-    lineHeight: 22,
+    color: "#111827", // Navy/slate text
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 24,
+    marginBottom: 24,
   },
   optionsList: {
-    gap: 10,
+    gap: 12,
     marginBottom: 20,
   },
   optionButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1.5,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
+    elevation: 1,
   },
   optionNormal: {
-    backgroundColor: "#111827",
-    borderColor: "#374151",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E5E7EB",
   },
   optionCorrect: {
-    backgroundColor: "rgba(16, 185, 129, 0.08)",
+    backgroundColor: "#ECFDF5",
     borderColor: "#10B981", // Green border
   },
   optionWrong: {
-    backgroundColor: "rgba(239, 68, 68, 0.08)",
+    backgroundColor: "#FEF2F2",
     borderColor: "#EF4444", // Red border
   },
   letterBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
   badgeNormal: {
-    backgroundColor: "#374151",
+    backgroundColor: "#F3F4F6", // Light gray badge background
   },
   badgeCorrect: {
     backgroundColor: "#10B981",
@@ -237,37 +256,46 @@ const styles = StyleSheet.create({
     backgroundColor: "#EF4444",
   },
   letterText: {
-    color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "800",
+  },
+  badgeTextNormal: {
+    color: "#4B5563",
+  },
+  badgeTextCorrect: {
+    color: "#FFFFFF",
+  },
+  badgeTextWrong: {
+    color: "#FFFFFF",
   },
   optionText: {
     flex: 1,
     fontSize: 14,
+    lineHeight: 20,
   },
   textNormal: {
-    color: "#D1D5DB",
-    fontWeight: "550",
+    color: "#374151", // Charcoal text
+    fontWeight: "600",
   },
   textCorrect: {
-    color: "#10B981",
-    fontWeight: "850",
+    color: "#065F46", // Dark green text
+    fontWeight: "700",
   },
   textWrong: {
-    color: "#EF4444",
-    fontWeight: "850",
+    color: "#991B1B", // Dark red text
+    fontWeight: "700",
   },
   explanationPanel: {
-    backgroundColor: "#111827",
+    backgroundColor: "#F8FAFC",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#374151",
+    borderColor: "#F1F5F9",
     padding: 16,
     marginTop: 8,
   },
   explanationTitle: {
     fontSize: 14,
-    fontWeight: "850",
+    fontWeight: "800",
     marginBottom: 6,
   },
   textGreen: {
@@ -277,7 +305,7 @@ const styles = StyleSheet.create({
     color: "#EF4444",
   },
   explanationText: {
-    color: "#9CA3AF",
+    color: "#4B5563",
     fontSize: 13,
     lineHeight: 18,
     fontWeight: "500",
@@ -291,26 +319,26 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   starsRewardText: {
-    color: "#FBBF24", // Gold stars text
+    color: COLORS.accent, // Gold stars text
     fontSize: 11,
     fontWeight: "800",
   },
   nextButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: COLORS.accent, // Yellow accent color from COLORS
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#4F46E5",
+    shadowColor: COLORS.accent,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 3,
   },
   nextText: {
     color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "750",
+    fontWeight: "700",
   },
 });
