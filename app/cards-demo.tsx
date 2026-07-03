@@ -54,25 +54,31 @@ export default function CardsDemoScreen() {
   };
 
   const storyScenarioProps = {
-    name: "Arjun Sharma",
-    role: "SOFTWARE DEV",
+    name: "Arjun",
+    role: "Software Analyst",
     onRespond: (id: string) => logAction(`StoryScenario: onRespond with choice: "${id}"`),
     onContinue: () => logAction("StoryScenario: onContinue triggered! Next card..."),
+    onPrevious: () => logAction("StoryScenario: onPrevious triggered!"),
   };
 
   const conceptExplainerProps = {
-    moduleLabel: "Module 2 · Card 3",
-    title: "The company is sharing profits with you.",
-    bodyParts: [
-      { type: "text", content: "A " },
-      { type: "jargon", content: "dividend", def: "A portion of a company's profit paid to shareholders.", example: "Infosys paid ₹42/share dividend in FY2023." },
-      { type: "text", content: " is cash a company pays from its profits. The amount and timeline depend on dates registered with " },
-      { type: "jargon", content: "BSE India", def: "Bombay Stock Exchange, one of Asia's oldest stock exchanges.", example: "Over 5000+ companies are listed on BSE." },
-      { type: "text", content: "." },
-    ] as any[],
-    highlightQuote: "Buy before the ex-dividend date or you miss it.",
-    footnote: "Data source: BSE India files.",
+    moduleLabel: "Module 1 · Card 3",
+    title: "Your savings account is quietly lying to you.",
+    paragraphs: [
+      "Arjun's bank gives him about 3.5% interest on his savings account. That sounds decent — until you learn that inflation in India runs at roughly 5-6% per year.",
+      "Inflation means prices rise over time. The ₹100 that buys you lunch today will only buy you part of that lunch in 10 years. If your money grows slower than prices rise, you're getting poorer even while your bank balance goes up. This isn't a scare tactic — it's just arithmetic.",
+      "Look at what happens to ₹1,000,000 over 10 years depending on where it sits:"
+    ],
+    chartBars: [
+      { label: "Under the\nMattress (0%)", valLabel: "₹1.0L", value: 1.0, color: "#EF4444" },
+      { label: "Savings\nAccount (3.5%)", valLabel: "₹1.4L", value: 1.4, color: "#3B82F6" },
+      { label: "Invested in\nEquity (12%)", valLabel: "₹3.1L", value: 3.1, color: "#10B981" }
+    ],
+    quoteText: "“Same ₹1 lakh. Same 10 years. Completely different outcomes — just based on where the money sat.”",
+    footnote: "* 12% is the approximate long-term CAGR of the Nifty 50 over the past 20 years. Returns are illustrative and not guaranteed.",
+    actionButtonText: "I see the problem — what's the solution?",
     onContinue: () => logAction("ConceptExplainer: onContinue triggered!"),
+    onPrevious: () => logAction("ConceptExplainer: onPrevious triggered!"),
   };
 
   const interactiveExplorerProps = {

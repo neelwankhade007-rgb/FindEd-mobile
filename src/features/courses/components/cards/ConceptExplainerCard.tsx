@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet, Modal } from "react-native";
+import React from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
 
@@ -10,312 +10,419 @@ export interface ExplainerPart {
   example?: string;
 }
 
+export interface ChartBarData {
+  label: string;
+  valLabel: string;
+  value: number; // e.g. 1.0, 1.4, 3.1
+  color: string;
+}
+
 interface ConceptExplainerCardProps {
-  moduleLabel: string;
-  title: string;
-  bodyParts: ExplainerPart[];
-  highlightQuote: string;
+  moduleLabel?: string;
+  title?: string;
+  paragraphs?: string[];
+  chartBars?: ChartBarData[];
+  quoteText?: string;
   footnote?: string;
+  actionButtonText?: string;
   onContinue: () => void;
+  onPrevious?: () => void;
 }
 
 export default function ConceptExplainerCard({
-  moduleLabel,
-  title,
-  bodyParts,
-  highlightQuote,
-  footnote,
+  moduleLabel = "MODULE 1 • CARD 3",
+  title = "Your savings account is quietly lying to you.",
+  paragraphs = [
+    "Arjun's bank gives him about 3.5% interest on his savings account. That sounds decent — until you learn that inflation in India runs at roughly 5-6% per year.",
+    "Inflation means prices rise over time. The ₹100 that buys you lunch today will only buy you part of that lunch in 10 years. If your money grows slower than prices rise, you're getting poorer even while your bank balance goes up. This isn't a scare tactic — it's just arithmetic.",
+    "Look at what happens to ₹1,000,000 over 10 years depending on where it sits:"
+  ],
+  chartBars = [
+    { label: "Under the\nMattress (0%)", valLabel: "₹1.0L", value: 1.0, color: "#EF4444" },
+    { label: "Savings\nAccount (3.5%)", valLabel: "₹1.4L", value: 1.4, color: "#3B82F6" },
+    { label: "Invested in\nEquity (12%)", valLabel: "₹3.1L", value: 3.1, color: "#10B981" }
+  ],
+  quoteText = "“Same ₹1 lakh. Same 10 years. Completely different outcomes — just based on where the money sat.”",
+  footnote = "* 12% is the approximate long-term CAGR of the Nifty 50 over the past 20 years. Returns are illustrative and not guaranteed.",
+  actionButtonText = "I see the problem — what's the solution?",
   onContinue,
+  onPrevious,
 }: ConceptExplainerCardProps) {
-  const [activeJargon, setActiveJargon] = useState<{
-    term: string;
-    def: string;
-    example?: string;
-  } | null>(null);
+
+  // Canvas height configuration
+  const canvasHeight = 140;
+  const gridTop = 15;
+  const gridBottom = 125;
+  const gridHeight = gridBottom - gridTop; // 110px usable grid area
+  const minValue = 0.5;
+  const maxValue = 3.5;
+  const valueRange = maxValue - minValue;
+
+  const getBarHeight = (val: number) => {
+    const heightRatio = (val - minValue) / valueRange;
+    return Math.max(0, heightRatio * gridHeight);
+  };
+
+  // Helper to simplify wrapping of labels
+  const formatLabel = (lbl: string) => {
+    if (lbl.includes("Mattress")) return ["Cash", "0%"];
+    if (lbl.includes("Savings")) return ["Savings", "3.5%"];
+    if (lbl.includes("Equity")) return ["Equity", "12%"];
+    // Fallback split by newline if present
+    const parts = lbl.split("\n");
+    return parts.length > 1 ? [parts[0], parts[1]] : [lbl, ""];
+  };
 
   return (
-    <View style={styles.outerContainer}>
-      {/* Main content card */}
-      <View style={styles.cardContainer}>
-        <View>
-          <Text style={styles.moduleLabel}>{moduleLabel.toUpperCase()}</Text>
-          <Text style={styles.titleText}>{title}</Text>
+    <View style={styles.cardContainer}>
+      <View style={styles.contentSection}>
+        {/* Module Label */}
+        <Text style={styles.moduleLabel}>{moduleLabel.toUpperCase()}</Text>
 
-          {/* Paragraph Text with inline Jargon */}
-          <Text style={styles.bodyTextContainer}>
-            {bodyParts.map((part, index) => {
-              if (part.type === "jargon") {
+        {/* Title (Medium weight, largest card text) */}
+        <Text style={styles.titleText}>{title}</Text>
+
+        {/* Paragraphs */}
+        {paragraphs.map((p, index) => {
+          if (p.includes("3.5% interest") || p.includes("5-6% per year")) {
+            return (
+              <Text key={index} style={styles.paragraphText}>
+                Arjun's bank gives him about{" "}
+                <Text style={styles.boldText}>3.5% interest</Text> on his savings
+                account. That sounds decent — until you learn that inflation in India
+                runs at roughly <Text style={styles.boldText}>5-6% per year</Text>.
+              </Text>
+            );
+          }
+          return (
+            <Text key={index} style={styles.paragraphText}>
+              {p}
+            </Text>
+          );
+        })}
+
+        {/* Infographic Chart Area */}
+        {chartBars && chartBars.length > 0 && (
+          <View style={styles.chartOuterContainer}>
+            <View style={[styles.chartCanvas, { height: canvasHeight }]}>
+              {/* Gridlines & Y-Axis Labels */}
+              <View style={styles.gridlinesLayer}>
+                {["3.5L", "2.5L", "1.5L", "0.5L"].map((yLabel, idx) => {
+                  // Distribute grid lines evenly inside gridHeight (110px) starting from top (15px)
+                  const lineTop = gridTop + (idx * gridHeight) / 3;
+                  return (
+                    <View key={idx} style={[styles.gridRow, { top: lineTop }]}>
+                      <Text style={styles.yAxisLabel}>₹{yLabel}</Text>
+                      <View style={styles.gridLine} />
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* Bars Layer */}
+              <View style={styles.barsLayer}>
+                {chartBars.map((bar, idx) => {
+                  const barH = getBarHeight(bar.value);
+                  return (
+                    <View key={idx} style={styles.barWrapper}>
+                      {/* Floating Bold Value Tag */}
+                      <Text style={[styles.barValText, { color: bar.color }]}>
+                        {bar.valLabel}
+                      </Text>
+                      {/* Substantial Rounded Bar */}
+                      <View
+                        style={[
+                          styles.barFill,
+                          {
+                            height: barH,
+                            backgroundColor: bar.color,
+                          },
+                        ]}
+                      />
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Category Labels Row (Aligned under the bars) */}
+            <View style={styles.categoriesRow}>
+              {chartBars.map((bar, idx) => {
+                const [line1, line2] = formatLabel(bar.label);
                 return (
-                  <Text
-                    key={index}
-                    style={styles.jargonText}
-                    onPress={() =>
-                      setActiveJargon({
-                        term: part.content,
-                        def: part.def || "",
-                        example: part.example,
-                      })
-                    }
-                  >
-                    {part.content}
-                  </Text>
+                  <View key={idx} style={styles.categoryLabelCol}>
+                    <Text style={styles.categoryTextLine1}>{line1}</Text>
+                    {line2 ? <Text style={styles.categoryTextLine2}>{line2}</Text> : null}
+                  </View>
                 );
-              }
-              return (
-                <Text key={index} style={styles.normalText}>
-                  {part.content}
-                </Text>
-              );
-            })}
-          </Text>
-
-          {/* Highlight Quote Block (Sparkles box) */}
-          <View style={styles.quoteBlock}>
-            <Ionicons name="sparkles-outline" size={20} color="#6366F1" style={styles.quoteIcon} />
-            <Text style={styles.quoteText}>{highlightQuote}</Text>
+              })}
+            </View>
           </View>
-        </View>
+        )}
 
-        {/* Continue button */}
-        <View style={styles.footerSection}>
+        {/* Highlight/Quote Text */}
+        {quoteText && (
+          <View style={styles.quoteContainer}>
+            <Text style={styles.quoteText}>{quoteText}</Text>
+          </View>
+        )}
+
+        {/* Footnote text */}
+        {footnote && <Text style={styles.footnoteText}>{footnote}</Text>}
+
+        {/* Primary CTA button */}
+        {actionButtonText && (
           <Pressable
             onPress={onContinue}
             style={({ pressed }) => [
-              styles.continueButton,
-              { opacity: pressed ? 0.95 : 1 },
+              styles.actionButton,
+              { opacity: pressed ? 0.9 : 1 },
             ]}
           >
-            <Text style={styles.continueText}>Continue ➔</Text>
+            <Text style={styles.actionButtonText}>{actionButtonText}</Text>
+            <Ionicons
+              name="arrow-forward"
+              size={18}
+              color={COLORS.onPrimary}
+              style={{ marginLeft: 6 }}
+            />
           </Pressable>
-        </View>
+        )}
       </View>
 
-      {/* Pro Tip Box underneath the card */}
-      {footnote ? (
-        <View style={styles.proTipContainer}>
-          <View style={styles.proTipIconWrapper}>
-            <Ionicons name="bulb-outline" size={16} color="#FFFFFF" />
-          </View>
-          <View style={styles.proTipTextContent}>
-            <Text style={styles.proTipLabel}>PRO TIP</Text>
-            <Text style={styles.proTipText}>{footnote}</Text>
-          </View>
-        </View>
-      ) : null}
-
-      {/* Inline Tooltip Modal */}
-      {activeJargon && (
-        <Modal
-          transparent={true}
-          visible={!!activeJargon}
-          animationType="fade"
-          onRequestClose={() => setActiveJargon(null)}
+      {/* Footer navigation */}
+      <View style={styles.footerRow}>
+        <Pressable
+          onPress={onPrevious}
+          style={({ pressed }) => [
+            styles.navButton,
+            { opacity: pressed ? 0.6 : 1 },
+          ]}
         >
-          <Pressable
-            style={styles.modalOverlay}
-            onPress={() => setActiveJargon(null)}
-          >
-            <View style={styles.tooltipCard}>
-              <View style={styles.tooltipHeader}>
-                <Text style={styles.tooltipTitle}>{activeJargon.term}</Text>
-                <Pressable onPress={() => setActiveJargon(null)} hitSlop={12}>
-                  <Ionicons name="close" size={20} color={COLORS.inactive} />
-                </Pressable>
-              </View>
+          <Ionicons
+            name="chevron-back"
+            size={16}
+            color={COLORS.onSurfaceVariant}
+            style={{ marginRight: 4 }}
+          />
+          <Text style={styles.navButtonText}>Previous</Text>
+        </Pressable>
 
-              <Text style={styles.tooltipDef}>{activeJargon.def}</Text>
-
-              {activeJargon.example && (
-                <View style={styles.tooltipExampleContainer}>
-                  <Text style={styles.tooltipExampleLabel}>Example:</Text>
-                  <Text style={styles.tooltipExampleText}>
-                    {activeJargon.example}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </Pressable>
-        </Modal>
-      )}
+        <Pressable
+          onPress={onContinue}
+          style={({ pressed }) => [
+            styles.continueButton,
+            { opacity: pressed ? 0.9 : 1 },
+          ]}
+        >
+          <Text style={styles.continueButtonText}>Continue</Text>
+          <Ionicons
+            name="chevron-forward"
+            size={16}
+            color={COLORS.onPrimary}
+            style={{ marginLeft: 4 }}
+          />
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  outerContainer: {
-    gap: 16,
+  cardContainer: {
+    backgroundColor: "transparent",
+    gap: 8,
+    paddingHorizontal: 4,
     width: "100%",
   },
-  cardContainer: {
-    backgroundColor: COLORS.surface, // Solid white card surface
-    borderRadius: 24,
-    padding: 24,
+  contentSection: {
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    minHeight: 380,
-    justifyContent: "space-between",
+    borderColor: COLORS.outlineVariant,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+    gap: 10,
+    width: "100%",
   },
   moduleLabel: {
-    color: "#6B7280",
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1,
-    marginBottom: 8,
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 11,
+    color: COLORS.primaryContainer,
+    letterSpacing: 0.5,
   },
   titleText: {
-    color: "#111827", // Navy/slate title text
+    fontFamily: "PlusJakartaSans-Medium", // Medium weight (largest text in the card)
     fontSize: 22,
-    fontWeight: "800",
+    color: COLORS.onSurface,
     lineHeight: 28,
-    marginBottom: 16,
   },
-  bodyTextContainer: {
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  normalText: {
-    color: "#374151", // High contrast dark charcoal
+  paragraphText: {
+    fontFamily: "PlusJakartaSans-Regular",
     fontSize: 14,
-    fontWeight: "500",
+    lineHeight: 19,
+    color: COLORS.onSurfaceVariant,
   },
-  jargonText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: "700",
-    textDecorationLine: "underline",
-    textDecorationStyle: "dotted",
+  boldText: {
+    fontFamily: "PlusJakartaSans-Bold",
+    color: COLORS.onSurface,
   },
-  quoteBlock: {
+  chartOuterContainer: {
+    marginVertical: 4,
+    width: "100%",
+  },
+  chartCanvas: {
+    width: "100%",
+    position: "relative",
+  },
+  gridlinesLayer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  gridRow: {
+    position: "absolute",
+    left: 0,
+    right: 0,
     flexDirection: "row",
-    backgroundColor: "#F5F3FF", // Light lavender/purple tint
-    borderRadius: 16,
-    padding: 16,
     alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: "#EDE9FE",
+    height: 14,
+    transform: [{ translateY: -7 }], // Centers label vertically on lines
   },
-  quoteIcon: {
-    marginTop: 1,
+  yAxisLabel: {
+    width: 35,
+    fontFamily: "PlusJakartaSans-Medium",
+    fontSize: 9,
+    color: COLORS.onSurfaceVariant,
+    textAlign: "right",
+    paddingRight: 6,
+    opacity: 0.8,
+  },
+  gridLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(0,0,0,0.06)",
+  },
+  barsLayer: {
+    position: "absolute",
+    left: 35,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "flex-end",
+    paddingBottom: 15, // Anchored on the 0.5L grid line (at gridBottom = 125px)
+  },
+  barWrapper: {
+    alignItems: "center",
+    width: 75,
+  },
+  barValText: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  barFill: {
+    width: 36, // Substantial bar width (increased by ~30%)
+    borderRadius: 6,
+  },
+  categoriesRow: {
+    flexDirection: "row",
+    marginLeft: 35,
+    justifyContent: "space-around",
+    marginTop: 6,
+  },
+  categoryLabelCol: {
+    width: 75,
+    alignItems: "center",
+  },
+  categoryTextLine1: {
+    fontFamily: "PlusJakartaSans-Medium",
+    fontSize: 10,
+    color: COLORS.onSurfaceVariant,
+    textAlign: "center",
+  },
+  categoryTextLine2: {
+    fontFamily: "PlusJakartaSans-Medium",
+    fontSize: 9,
+    color: COLORS.onSurfaceVariant,
+    textAlign: "center",
+    opacity: 0.8,
+  },
+  quoteContainer: {
+    marginTop: 6,
+    alignItems: "center",
+    paddingHorizontal: 12,
   },
   quoteText: {
-    flex: 1,
-    color: "#1E1B4B",
-    fontSize: 13.5,
-    fontWeight: "700",
+    fontFamily: "PlusJakartaSans-SemiBold",
+    fontSize: 13.5, // Slightly smaller, insight-style
+    color: COLORS.onSurface,
     lineHeight: 18,
+    textAlign: "center",
+    fontStyle: "italic",
   },
-  footerSection: {
-    marginTop: 16,
+  footnoteText: {
+    fontFamily: "PlusJakartaSans-Regular",
+    fontSize: 10.5, // Smaller font, lower contrast
+    color: COLORS.onSurfaceVariant,
+    opacity: 0.7,
+    lineHeight: 14,
+    textAlign: "center",
+    marginTop: -2,
   },
-  continueButton: {
-    backgroundColor: COLORS.accent, // Yellow accent color from COLORS
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  continueText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  proTipContainer: {
+  actionButton: {
     flexDirection: "row",
-    backgroundColor: "#F5F3FF", // Soft light purple container
-    borderRadius: 18,
-    padding: 16,
-    gap: 12,
-    alignItems: "center",
-  },
-  proTipIconWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#2E1065", // Dark purple icon circle
     alignItems: "center",
     justifyContent: "center",
-  },
-  proTipTextContent: {
-    flex: 1,
-    gap: 2,
-  },
-  proTipLabel: {
-    color: "#4F46E5", // Purple label
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
-  proTipText: {
-    color: "#4B5563",
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: "600",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
-  },
-  tooltipCard: {
+    backgroundColor: COLORS.primaryContainer,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 4,
     width: "100%",
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 8,
   },
-  tooltipHeader: {
+  actionButtonText: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 14,
+    color: COLORS.onPrimary,
+  },
+  footerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    marginTop: 2,
+    paddingBottom: 6,
   },
-  tooltipTitle: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: "800",
+  navButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
-  tooltipDef: {
-    color: COLORS.text,
+  navButtonText: {
+    fontFamily: "PlusJakartaSans-Bold",
     fontSize: 14,
-    lineHeight: 20,
-    fontWeight: "400",
+    color: COLORS.onSurfaceVariant,
   },
-  tooltipExampleContainer: {
-    marginTop: 12,
-    backgroundColor: COLORS.background,
-    padding: 10,
-    borderRadius: 10,
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.primary,
+  continueButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.primaryContainer,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
   },
-  tooltipExampleLabel: {
-    color: COLORS.primary,
-    fontSize: 11,
-    fontWeight: "800",
-    marginBottom: 2,
-  },
-  tooltipExampleText: {
-    color: COLORS.textSecondary,
-    fontSize: 12.5,
-    lineHeight: 18,
-    fontWeight: "500",
+  continueButtonText: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 14,
+    color: COLORS.onPrimary,
   },
 });

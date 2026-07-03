@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
@@ -6,132 +6,174 @@ import { COLORS } from "@/constants/colors";
 export interface ScenarioStat {
   label: string;
   value: string;
-  color: string;
+  color?: string;
 }
 
 export interface ScenarioOption {
   id: string;
   text: string;
-  type?: "primary" | "secondary" | "accent";
-  icon?: string;
+  emoji?: string;
 }
 
 interface StoryScenarioCardProps {
+  moduleLabel?: string;
+  headline?: string;
   name?: string;
+  age?: number;
   role?: string;
-  onRespond: (optionId: string) => void;
+  location?: string;
+  stats?: ScenarioStat[];
+  paragraphs?: string[];
+  quoteText?: string;
+  questionText?: string;
+  options?: ScenarioOption[];
+  onRespond?: (optionId: string) => void;
   onContinue?: () => void;
+  onPrevious?: () => void;
 }
 
 export default function StoryScenarioCard({
-  name = "Arjun Sharma",
-  role = "SOFTWARE DEV",
+  moduleLabel = "MODULE 1 • CARD 2",
+  headline = "Meet Arjun. He's doing everything right — and still falling behind.",
+  name = "Arjun",
+  age = 24,
+  role = "Software Analyst",
+  location = "Pune",
+  stats = [
+    { label: "SALARY", value: "₹40k", color: "#3525cd" },
+    { label: "EXPENSES", value: "₹25k", color: "#141b2b" },
+    { label: "SAVINGS", value: "₹15k", color: "#3525cd" },
+  ],
+  paragraphs = [
+    "Arjun isn't splurging. He isn't in debt. He saves ₹15,000 every single month without fail. By most people's standards, he's being responsible with money.",
+    "But at the end of every year, Arjun looks at his bank balance and thinks — \"I've been saving for two years. Why does it still feel like I'm falling behind?\"",
+  ],
+  quoteText = "The answer isn't that Arjun is doing something wrong. It's that saving and investing are not the same thing — and that difference, over a lifetime, can be worth crores.",
+  questionText = "Does this sound familiar? (No wrong answer — tap to continue)",
+  options = [
+    { id: "me", text: "This is literally me right now", emoji: "😅" },
+    { id: "someone", text: "I know someone exactly like this", emoji: "👀" },
+    { id: "curious", text: "I'm curious where this is going", emoji: "🤔" },
+  ],
   onRespond,
   onContinue,
+  onPrevious,
 }: StoryScenarioCardProps) {
-  // Avatar image 5 levels up: src/features/courses/components/cards/StoryScenarioCard.tsx -> assets/images
   const avatarImage = require("../../../../../assets/images/arjun.png");
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+
+  const handleOptionPress = (optionId: string) => {
+    setSelectedOptionId(optionId);
+    if (onRespond) {
+      onRespond(optionId);
+    }
+  };
 
   return (
     <View style={styles.cardContainer}>
-      {/* Top Section: Avatar and Stats Row */}
-      <View style={styles.headerInfoRow}>
-        <Image source={avatarImage} style={styles.squareAvatar} />
-        <View style={styles.statsCol}>
-          {/* Salary Card */}
-          <View style={styles.statCardInline}>
-            <View>
-              <Text style={styles.statLabel}>Salary</Text>
-              <Text style={styles.statValue}>₹65,000</Text>
-            </View>
-            <Ionicons name="cash-outline" size={20} color="#10B981" />
+      {/* Module Eyebrow Heading */}
+      <Text style={styles.moduleLabel}>{moduleLabel}</Text>
+
+      {/* Main Title / Headline */}
+      <Text style={styles.headline}>{headline}</Text>
+
+      {/* Financial Profile Card */}
+      <View style={styles.profileCard}>
+        <View style={styles.profileHeaderRow}>
+          <Image source={avatarImage} style={styles.circularAvatar} />
+          <View style={styles.profileTextCol}>
+            <Text style={styles.profileName}>
+              {name}, {age}
+            </Text>
+            <Text style={styles.profileSubtitle}>
+              {role} • {location}
+            </Text>
           </View>
-          {/* Expenses Card */}
-          <View style={styles.statCardInline}>
-            <View>
-              <Text style={styles.statLabel}>Expenses</Text>
-              <Text style={styles.statValue}>₹42,000</Text>
+        </View>
+
+        {/* Statistics Row */}
+        <View style={styles.statsRow}>
+          {stats.map((stat, idx) => (
+            <View key={idx} style={styles.statCol}>
+              <Text style={[styles.statValue, { color: stat.color || COLORS.onSurface }]}>
+                {stat.value}
+              </Text>
+              <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
-            <Ionicons name="trending-down-outline" size={20} color="#EF4444" />
-          </View>
+          ))}
         </View>
       </View>
 
-      {/* Main Info Card */}
-      <View style={styles.detailsCard}>
-        <View style={styles.detailsHeader}>
-          <Text style={styles.detailsName}>{name}</Text>
-          <View style={styles.roleTag}>
-            <Text style={styles.roleTagText}>{role}</Text>
-          </View>
-        </View>
-        <Text style={styles.detailsDesc}>
-          Arjun just received his annual bonus and is contemplating between paying off his credit card debt or buying a new gaming setup he's wanted for months.
-        </Text>
+      {/* Narrative Paragraphs */}
+      <View style={styles.paragraphsContainer}>
+        {paragraphs.map((p, index) => (
+          <Text key={index} style={styles.paragraphText}>
+            {p}
+          </Text>
+        ))}
       </View>
 
-      {/* Current State Indicators */}
-      <View style={styles.sectionWrapper}>
-        <Text style={styles.sectionHeader}>CURRENT STATE</Text>
-        <View style={styles.stateRow}>
-          {/* Emergency Card */}
-          <View style={styles.stateCard}>
-            <View style={styles.stateHeader}>
-              <Ionicons name="shield-checkmark-outline" size={14} color="#4F46E5" />
-              <Text style={styles.stateTitle}>Emergency</Text>
-            </View>
-            <View style={styles.stateProgressBackground}>
-              <View style={[styles.stateProgressFill, { width: "33%" }]} />
-            </View>
-            <Text style={styles.stateLabelText}>33% Funded</Text>
-          </View>
-
-          {/* Debt Load Card */}
-          <View style={styles.stateCard}>
-            <View style={styles.stateHeader}>
-              <Ionicons name="card-outline" size={14} color="#854D0E" />
-              <Text style={styles.stateTitle}>Debt Load</Text>
-            </View>
-            <View style={styles.stateProgressBackground}>
-              <View style={[styles.stateProgressFill, { width: "80%", backgroundColor: "#854D0E" }]} />
-            </View>
-            <Text style={styles.stateLabelText}>High Utilization</Text>
-          </View>
+      {/* Highlight Quote Callout */}
+      {quoteText ? (
+        <View style={styles.quoteBox}>
+          <Text style={styles.quoteText}>{quoteText}</Text>
         </View>
+      ) : null}
+
+      {/* Transition Question */}
+      {questionText ? (
+        <Text style={styles.questionText}>{questionText}</Text>
+      ) : null}
+
+      {/* Duolingo-style Choice Cards */}
+      <View style={styles.optionsContainer}>
+        {options.map((option) => {
+          const isSelected = option.id === selectedOptionId;
+          return (
+            <Pressable
+              key={option.id}
+              onPress={() => handleOptionPress(option.id)}
+              style={[
+                styles.optionRow,
+                isSelected ? styles.optionRowSelected : null,
+              ]}
+            >
+              <Text style={styles.optionEmoji}>{option.emoji}</Text>
+              <Text style={[
+                styles.optionText,
+                isSelected ? styles.optionTextSelected : null
+              ]}>
+                {option.text}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
-      {/* Opportunity Cost Box */}
-      <View style={styles.opportunityBox}>
-        <View style={styles.opportunityHeader}>
-          <Ionicons name="bulb-outline" size={18} color="#B45309" />
-          <Text style={styles.opportunityTitle}>The Opportunity Cost</Text>
-        </View>
-        <Text style={styles.opportunityDesc}>
-          "Every rupee spent on entertainment today is a rupee that isn't working for Arjun's future self at 12% interest."
-        </Text>
-      </View>
-
-      {/* Action Title and Buttons */}
-      <View style={styles.actionSection}>
-        <Text style={styles.howDoYouFeelLabel}>HOW DO YOU FEEL ABOUT ARJUN?</Text>
-        <View style={styles.actionButtonsRow}>
-          <Pressable style={styles.relatableBtn} onPress={() => onRespond("relatable")}>
-            <Ionicons name="heart-outline" size={16} color="#4F46E5" style={{ marginRight: 6 }} />
-            <Text style={styles.relatableBtnText}>Relatable</Text>
-          </Pressable>
-          <Pressable style={styles.curiousBtn} onPress={() => onRespond("curious")}>
-            <Ionicons name="search-outline" size={16} color="#111827" style={{ marginRight: 6 }} />
-            <Text style={styles.curiousBtnText}>Curious</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Next Scenario link */}
-      {onContinue && (
-        <Pressable style={styles.nextScenarioBtn} onPress={onContinue}>
-          <Text style={styles.nextScenarioBtnText}>Next Scenario ➔</Text>
+      {/* Fixed Footer Navigation */}
+      <View style={styles.footerRow}>
+        <Pressable
+          onPress={onPrevious}
+          style={({ pressed }) => [
+            styles.previousButton,
+            { opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={16} color={COLORS.onSurfaceVariant} style={{ marginRight: 4 }} />
+          <Text style={styles.previousButtonText}>Previous</Text>
         </Pressable>
-      )}
+
+        <Pressable
+          onPress={onContinue}
+          style={({ pressed }) => [
+            styles.continueButton,
+            { opacity: pressed ? 0.9 : 1 },
+          ]}
+        >
+          <Text style={styles.continueButtonText}>Continue</Text>
+          <Ionicons name="chevron-forward" size={16} color={COLORS.onPrimary} style={{ marginLeft: 4 }} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -140,222 +182,181 @@ const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: "transparent",
     gap: 16,
+    paddingHorizontal: 4,
+    width: "100%",
   },
-  headerInfoRow: {
+  moduleLabel: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 11,
+    color: COLORS.primaryContainer,
+    letterSpacing: 0.8,
+    marginBottom: -4,
+  },
+  headline: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 24,
+    color: COLORS.onSurface,
+    lineHeight: 32,
+  },
+  profileCard: {
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 16,
+    padding: 20, // Increased internal padding
+    borderWidth: 1,
+    borderColor: COLORS.outlineVariant,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 12,
+    elevation: 2,
+    marginTop: 4,
+  },
+  profileHeaderRow: {
     flexDirection: "row",
-    gap: 12,
+    alignItems: "center",
+    gap: 16, // Increased spacing
+  },
+  circularAvatar: {
+    width: 56, // Increased size slightly
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.surfaceContainerLow,
+  },
+  profileTextCol: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  profileName: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 18, // Thicker name
+    color: COLORS.onSurface,
+  },
+  profileSubtitle: {
+    fontFamily: "PlusJakartaSans-Medium",
+    fontSize: 13,
+    color: COLORS.onSurfaceVariant,
+    marginTop: 2,
+  },
+  statsRow: {
+    flexDirection: "row",
+    backgroundColor: COLORS.surfaceContainerLow,
+    borderRadius: 12,
+    paddingVertical: 14, // Increased padding
+    paddingHorizontal: 16,
+    marginTop: 18,
+    justifyContent: "space-between",
+  },
+  statCol: {
+    flex: 1,
     alignItems: "center",
   },
-  squareAvatar: {
-    width: 110,
-    height: 110,
-    borderRadius: 16,
+  statValue: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 19, // Larger values
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 9,
+    color: COLORS.onSurfaceVariant,
+    letterSpacing: 0.5,
+  },
+  paragraphsContainer: {
+    gap: 22, // Set 22-24px paragraph spacing rhythm
+  },
+  paragraphText: {
+    fontFamily: "PlusJakartaSans-Regular",
+    fontSize: 15,
+    lineHeight: 22, // Higher line height
+    color: COLORS.onSurfaceVariant,
+  },
+  quoteBox: {
+    backgroundColor: "rgba(254, 166, 25, 0.06)", // Soft amber background tint
+    borderLeftWidth: 5, // Thicker left accent bar
+    borderLeftColor: COLORS.secondaryContainer,
+    borderRadius: 10,
+    padding: 16,
+    marginVertical: 4,
+  },
+  quoteText: {
+    fontFamily: "PlusJakartaSans-SemiBold",
+    fontSize: 14,
+    color: COLORS.onSecondaryContainer,
+    lineHeight: 20,
+  },
+  questionText: {
+    fontFamily: "PlusJakartaSans-Medium",
+    fontSize: 13.5,
+    fontStyle: "italic",
+    color: COLORS.onSurfaceVariant,
+    marginTop: 8,
+    opacity: 0.85,
+  },
+  optionsContainer: {
+    gap: 12, // Duolingo cards gaps
+  },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 14,
+    paddingVertical: 16, // Better height and touch targets
+    paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.outlineVariant,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.01,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  statsCol: {
+  optionRowSelected: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.surfaceContainerLow,
+    shadowOpacity: 0.02,
+  },
+  optionEmoji: {
+    fontSize: 20,
+    marginRight: 14,
+  },
+  optionText: {
+    fontFamily: "PlusJakartaSans-SemiBold",
+    fontSize: 14.5,
+    color: COLORS.onSurface,
     flex: 1,
-    gap: 8,
   },
-  statCardInline: {
+  optionTextSelected: {
+    color: COLORS.primary,
+  },
+  footerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
+    marginTop: 18,
+    paddingBottom: 16,
+  },
+  previousButton: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 4,
-    elevation: 1,
+    paddingHorizontal: 14,
   },
-  statLabel: {
-    color: COLORS.textSecondary,
-    fontSize: 10,
-    fontWeight: "700",
-    marginBottom: 2,
+  previousButtonText: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 14,
+    color: COLORS.onSurfaceVariant,
   },
-  statValue: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  detailsCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  detailsHeader: {
+  continueButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
+    backgroundColor: COLORS.primaryContainer,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 12,
   },
-  detailsName: {
-    color: "#1E1B4B",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  roleTag: {
-    backgroundColor: "#FEF3C7", // Yellow/amber tag background
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  roleTagText: {
-    color: "#D97706", // Dark orange/brown tag text
-    fontSize: 8.5,
-    fontWeight: "800",
-  },
-  detailsDesc: {
-    color: "#374151",
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: "500",
-  },
-  sectionWrapper: {
-    gap: 8,
-  },
-  sectionHeader: {
-    color: "#6B7280",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1.5,
-  },
-  stateRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  stateCard: {
-    flex: 1,
-    backgroundColor: COLORS.surface,
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  stateHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 6,
-  },
-  stateTitle: {
-    color: COLORS.text,
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  stateProgressBackground: {
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#E2E8F0",
-    width: "100%",
-    marginBottom: 6,
-    overflow: "hidden",
-  },
-  stateProgressFill: {
-    height: "100%",
-    backgroundColor: "#4F46E5",
-    borderRadius: 2,
-  },
-  stateLabelText: {
-    color: COLORS.textSecondary,
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  opportunityBox: {
-    backgroundColor: "#FFFBEB", // Soft amber background
-    borderWidth: 1,
-    borderColor: "#FDE68A",
-    borderRadius: 16,
-    padding: 16,
-    gap: 6,
-  },
-  opportunityHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  opportunityTitle: {
-    color: "#92400E", // Deep amber/brown
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  opportunityDesc: {
-    color: "#78350F",
-    fontSize: 12,
-    fontStyle: "italic",
-    lineHeight: 16,
-    fontWeight: "600",
-  },
-  actionSection: {
-    gap: 10,
-    marginTop: 8,
-  },
-  howDoYouFeelLabel: {
-    color: "#6B7280",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1.5,
-    textAlign: "center",
-  },
-  actionButtonsRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  relatableBtn: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.surface,
-    borderWidth: 1.5,
-    borderColor: "#C7D2FE",
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  relatableBtnText: {
-    color: "#4B5563",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  curiousBtn: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.accent, // Yellow accent button color from COLORS
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  curiousBtnText: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  nextScenarioBtn: {
-    alignSelf: "center",
-    paddingVertical: 8,
-  },
-  nextScenarioBtnText: {
-    color: "#6B7280",
-    fontSize: 13,
-    fontWeight: "700",
+  continueButtonText: {
+    fontFamily: "PlusJakartaSans-Bold",
+    fontSize: 14,
+    color: COLORS.onPrimary,
   },
 });

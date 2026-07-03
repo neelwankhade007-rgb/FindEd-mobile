@@ -250,8 +250,10 @@ const styles = StyleSheet.create({
   dotWrapper: {
     position: "absolute",
     alignItems: "center",
-    justifyContent: "center",
-    marginTop: -8, // Centers the dot vertically relative to track
+    width: 60,
+    marginLeft: -30,
+    top: 20, // Center vertically on the trackContainer (height 40)
+    transform: [{ translateY: -9 }], // Offset by half of dotCircle height (18/2 = 9) to center the dot on the line
   },
   dotCircle: {
     width: 18,
