@@ -50,15 +50,24 @@ export default function CardsDemoScreen() {
     tagline: "Before you invest a single rupee, you need to understand your options.",
     xpTeaser: "30 FinStars",
     ctaText: "See what happened →",
-    onComplete: () => logAction("CinematicOpener: onComplete triggered! Next card..."),
+    onComplete: () => {
+      logAction("CinematicOpener: onComplete triggered! Next card...");
+      setActiveCardId(2);
+    },
   };
 
   const storyScenarioProps = {
     name: "Arjun",
     role: "Software Analyst",
     onRespond: (id: string) => logAction(`StoryScenario: onRespond with choice: "${id}"`),
-    onContinue: () => logAction("StoryScenario: onContinue triggered! Next card..."),
-    onPrevious: () => logAction("StoryScenario: onPrevious triggered!"),
+    onContinue: () => {
+      logAction("StoryScenario: onContinue triggered! Next card...");
+      setActiveCardId(3);
+    },
+    onPrevious: () => {
+      logAction("StoryScenario: onPrevious triggered!");
+      setActiveCardId(1);
+    },
   };
 
   const conceptExplainerProps = {
@@ -77,8 +86,14 @@ export default function CardsDemoScreen() {
     quoteText: "“Same ₹1 lakh. Same 10 years. Completely different outcomes — just based on where the money sat.”",
     footnote: "* 12% is the approximate long-term CAGR of the Nifty 50 over the past 20 years. Returns are illustrative and not guaranteed.",
     actionButtonText: "I see the problem — what's the solution?",
-    onContinue: () => logAction("ConceptExplainer: onContinue triggered!"),
-    onPrevious: () => logAction("ConceptExplainer: onPrevious triggered!"),
+    onContinue: () => {
+      logAction("ConceptExplainer: onContinue triggered!");
+      setActiveCardId(4);
+    },
+    onPrevious: () => {
+      logAction("ConceptExplainer: onPrevious triggered!");
+      setActiveCardId(2);
+    },
   };
 
   const interactiveExplorerProps = {
@@ -94,7 +109,10 @@ export default function CardsDemoScreen() {
       realestate: { returnVal: "~8-10%", returnLevel: "mid", riskVal: "Low-Mid", riskLevel: "mid", liquidityVal: "Low", liquidityLevel: "low", description: "Real Estate represents physical property ownership yielding rental income and capital appreciation.", bestFor: "Stable long-term tangible wealth generation." },
       equity: { returnVal: "~15%", returnLevel: "high", riskVal: "High", riskLevel: "high", liquidityVal: "Very High", liquidityLevel: "high", description: "Owning stock grants you direct business shares.", bestFor: "Creating generational compound growth." },
     } as any,
-    onContinue: () => logAction("InteractiveExplorer: onContinue triggered!"),
+    onContinue: () => {
+      logAction("InteractiveExplorer: onContinue triggered!");
+      setActiveCardId(5);
+    },
   };
 
   const riskSpectrumProps = {
@@ -104,12 +122,18 @@ export default function CardsDemoScreen() {
       { id: "mf", label: "MF", positionPercent: 55, color: "#FBBF24", title: "Mutual Funds", returnVal: "~12%", riskVal: "Medium", description: "Managed stocks portfolio." },
       { id: "eq", label: "Direct Equity", positionPercent: 88, color: "#EF4444", title: "Direct Equity Stocks", returnVal: "~15%+", riskVal: "High", description: "High reward direct ownership." },
     ],
-    onContinue: () => logAction("RiskSpectrum: onContinue triggered!"),
+    onContinue: () => {
+      logAction("RiskSpectrum: onContinue triggered!");
+      setActiveCardId(6);
+    },
   };
 
   const sliderCalculatorProps = {
     title: "What does this look like for you?",
-    onContinue: () => logAction("SliderCalculator: onContinue triggered!"),
+    onContinue: () => {
+      logAction("SliderCalculator: onContinue triggered!");
+      setActiveCardId(7);
+    },
   };
 
   const pillSelectorProps = {
@@ -150,13 +174,19 @@ export default function CardsDemoScreen() {
         note: "Based on your balanced risk profile and long-term outlook, this allocation maximizes growth while maintaining a safety net.",
       },
     },
-    onContinue: () => logAction("PillSelector: onContinue triggered!"),
+    onContinue: () => {
+      logAction("PillSelector: onContinue triggered!");
+      setActiveCardId(8);
+    },
   };
 
   const chartVisualProps = {
     title: "Wealth Growth Projection",
     subtitle: "Investing ₹15,000 / month for 30 years",
-    onContinue: () => logAction("ChartVisual: onContinue triggered!"),
+    onContinue: () => {
+      logAction("ChartVisual: onContinue triggered!");
+      setActiveCardId(9);
+    },
   };
 
   const quizProps = {
@@ -170,7 +200,10 @@ export default function CardsDemoScreen() {
     explanation: "Calculated as (80,000 ÷ 100)^(1/45) - 1 ≈ 16%. An FD at 8% would yield significantly less over 45 years.",
     onAnswerSelected: (correct: boolean) =>
       logAction(`Quiz: Answered! Correct? ${correct}`),
-    onNext: () => logAction("Quiz: onNext triggered!"),
+    onNext: () => {
+      logAction("Quiz: onNext triggered!");
+      setActiveCardId(10);
+    },
   };
 
   const completionProps = {
@@ -185,8 +218,14 @@ export default function CardsDemoScreen() {
     ],
     nextModuleTitle: "Module 3: The Stock Market",
     nextModuleDesc: "Now let's pull back the curtain on how trading works...",
-    onNextModule: () => logAction("Completion: onNextModule triggered! Routing..."),
-    onReplay: () => logAction("Completion: onReplay triggered!"),
+    onNextModule: () => {
+      logAction("Completion: onNextModule triggered! Routing...");
+      router.push("/courses");
+    },
+    onReplay: () => {
+      logAction("Completion: onReplay triggered!");
+      setActiveCardId(1);
+    },
   };
 
   return (
