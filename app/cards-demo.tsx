@@ -85,7 +85,6 @@ export default function CardsDemoScreen() {
     ],
     quoteText: "“Same ₹1 lakh. Same 10 years. Completely different outcomes — just based on where the money sat.”",
     footnote: "* 12% is the approximate long-term CAGR of the Nifty 50 over the past 20 years. Returns are illustrative and not guaranteed.",
-    actionButtonText: "I see the problem — what's the solution?",
     onContinue: () => {
       logAction("ConceptExplainer: onContinue triggered!");
       setActiveCardId(4);
@@ -265,20 +264,25 @@ export default function CardsDemoScreen() {
       </View>
 
       {/* Main card view container */}
-      <ScrollView contentContainerStyle={styles.cardWrapper} showsVerticalScrollIndicator={false}>
-        <View style={styles.cardFrame}>
-          {activeCardId === 1 && <CinematicOpenerCard {...cinematicOpenerProps} />}
-          {activeCardId === 2 && <StoryScenarioCard {...storyScenarioProps} />}
-          {activeCardId === 3 && <ConceptExplainerCard {...conceptExplainerProps} />}
-          {activeCardId === 4 && <InteractiveExplorerCard {...interactiveExplorerProps} />}
-          {activeCardId === 5 && <RiskSpectrumCard {...riskSpectrumProps} />}
-          {activeCardId === 6 && <SliderCalculatorCard {...sliderCalculatorProps} />}
-          {activeCardId === 7 && <PillSelectorCard {...pillSelectorProps} />}
-          {activeCardId === 8 && <ChartVisualCard {...chartVisualProps} />}
-          {activeCardId === 9 && <QuizCard {...quizProps} />}
-          {activeCardId === 10 && <CompletionCard {...completionProps} />}
+      {activeCardId === 2 ? (
+        <View style={styles.storyCardContainer}>
+          <StoryScenarioCard {...storyScenarioProps} />
         </View>
-      </ScrollView>
+      ) : (
+        <ScrollView contentContainerStyle={styles.cardWrapper} showsVerticalScrollIndicator={false}>
+          <View style={styles.cardFrame}>
+            {activeCardId === 1 && <CinematicOpenerCard {...cinematicOpenerProps} />}
+            {activeCardId === 3 && <ConceptExplainerCard {...conceptExplainerProps} />}
+            {activeCardId === 4 && <InteractiveExplorerCard {...interactiveExplorerProps} />}
+            {activeCardId === 5 && <RiskSpectrumCard {...riskSpectrumProps} />}
+            {activeCardId === 6 && <SliderCalculatorCard {...sliderCalculatorProps} />}
+            {activeCardId === 7 && <PillSelectorCard {...pillSelectorProps} />}
+            {activeCardId === 8 && <ChartVisualCard {...chartVisualProps} />}
+            {activeCardId === 9 && <QuizCard {...quizProps} />}
+            {activeCardId === 10 && <CompletionCard {...completionProps} />}
+          </View>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -325,5 +329,10 @@ const styles = StyleSheet.create({
   },
   cardFrame: {
     width: "100%",
+  },
+  storyCardContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
 });

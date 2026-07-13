@@ -170,24 +170,6 @@ export default function ConceptExplainerCard({
         {/* Footnote text */}
         {footnote && <Text style={styles.footnoteText}>{footnote}</Text>}
 
-        {/* Primary CTA button */}
-        {actionButtonText && (
-          <Pressable
-            onPress={onContinue}
-            style={({ pressed }) => [
-              styles.actionButton,
-              { opacity: pressed ? 0.9 : 1 },
-            ]}
-          >
-            <Text style={styles.actionButtonText}>{actionButtonText}</Text>
-            <Ionicons
-              name="arrow-forward"
-              size={18}
-              color={COLORS.onPrimary}
-              style={{ marginLeft: 6 }}
-            />
-          </Pressable>
-        )}
       </View>
 
       {/* Footer navigation */}
@@ -215,7 +197,7 @@ export default function ConceptExplainerCard({
             { opacity: pressed ? 0.9 : 1 },
           ]}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>I see what's the problem</Text>
           <Ionicons
             name="chevron-forward"
             size={16}
